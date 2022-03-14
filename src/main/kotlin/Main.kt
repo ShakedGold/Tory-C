@@ -38,7 +38,7 @@ fun App() {
 @Composable
 fun screen() {
     var mode by remember { mutableStateOf(Mode.IMPORT) }
-    var files by remember { mutableStateOf(setOf<File>()) }
+    var files by remember { mutableStateOf(listOf<File>()) }
     var ffmpeg by remember { mutableStateOf(FFmpeg()) }
     var ffprobe by remember { mutableStateOf(FFprobe()) }
     when (mode) {
@@ -81,7 +81,7 @@ fun screen() {
                                 FFprobe("${System.getProperty("user.dir")}\\src\\main\\kotlin\\FFmpeg Files\\Windows\\ffprobe")
                         }
                     }
-                    files = openFileDialog(ComposeWindow(), "Select File", listOf(".mov"))
+                    files = openFileDialog(ComposeWindow(), "Select File", listOf("mp4" , "mov", "avi", "flv", "gif", "png" , "jpeg", "jpg", "webp", "bmp", "pdf" , "docx", "txt"))
                     mode = Mode.CONVERT
                 }) { Text("Import Files") }
             }
@@ -94,13 +94,34 @@ fun screen() {
                         Button(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().padding(5.dp)) {
                             Text("Choose Format")
                         }
-                        Column {
-                            DropdownMenu(expanded = expanded, onDismissRequest = {expanded = false}, modifier = Modifier.fillMaxWidth()) {
-                                DropdownMenuItem(onClick = { convertTo("MOV", files, ffmpeg, ffprobe) }) { Text("MOV") }
-                                DropdownMenuItem(onClick = { convertTo("MP4", files, ffmpeg, ffprobe) }) { Text("MP4") }
-                                DropdownMenuItem(onClick = { convertTo("AVI", files, ffmpeg, ffprobe) }) { Text("AVI") }
-                                DropdownMenuItem(onClick = { convertTo("FLV", files, ffmpeg, ffprobe) }) { Text("FLV") }
-                                DropdownMenuItem(onClick = { convertTo("GIF", files, ffmpeg, ffprobe) }) { Text("GIF") }
+                        when (determineFiletype(files)) {
+                            Filetype.VIDEO -> {
+                                Column {
+                                    DropdownMenu(expanded = expanded, onDismissRequest = {expanded = false}, modifier = Modifier.fillMaxWidth()) {
+                                        DropdownMenuItem(onClick = { convertTo("MOV", files, ffmpeg, ffprobe) }) { Text("MOV") }
+                                        DropdownMenuItem(onClick = { convertTo("MP4", files, ffmpeg, ffprobe) }) { Text("MP4") }
+                                        DropdownMenuItem(onClick = { convertTo("AVI", files, ffmpeg, ffprobe) }) { Text("AVI") }
+                                        DropdownMenuItem(onClick = { convertTo("FLV", files, ffmpeg, ffprobe) }) { Text("FLV") }
+                                        DropdownMenuItem(onClick = { convertTo("GIF", files, ffmpeg, ffprobe) }) { Text("GIF") }
+                                    }
+                                }
+                            }
+                            Filetype.IMAGE -> {
+                                Column {
+                                    DropdownMenu(expanded = expanded, onDismissRequest = {expanded = false}, modifier = Modifier.fillMaxWidth()) {
+                                        DropdownMenuItem(onClick = {}) { Text("PNG") }
+                                        DropdownMenuItem(onClick = {}) { Text("JPG") }
+                                        DropdownMenuItem(onClick = {}) { Text("JPEG") }
+                                        DropdownMenuItem(onClick = {}) { Text("WEBP") }
+                                        DropdownMenuItem(onClick = {}) { Text("BMP") }
+                                    }
+                                }
+                            }
+                            Filetype.DOCUMENT -> {
+
+                            }
+                            else -> {
+                                Text("An Error has Occurred, Please Try Again")
                             }
                         }
                     }
@@ -113,7 +134,7 @@ fun screen() {
     }
 }
 
-fun convertTo(s: String, files: Set<File>, ffmpeg: FFmpeg, ffprobe: FFprobe) {
+fun convertTo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe) {
     files.forEach { file ->
         val executor = FFmpegExecutor(ffmpeg, ffprobe)
         val `in` = ffprobe.probe(file.path)
@@ -133,13 +154,42 @@ fun convertTo(s: String, files: Set<File>, ffmpeg: FFmpeg, ffprobe: FFprobe) {
     }
 }
 
+fun determineFiletype(files: List<File>) : Filetype {
+    if (files.size == 0) return Filetype.ERROR
+    var previous = files[0].name.split(".")[1]
+    val listOfVideo = listOf("mp4" , "mov", "avi", "flv", "gif") // Working maybe more formats
+    val listOfImage = listOf("png" , "jpeg", "jpg", "webp", "bmp") // More on the way *Not working yet*
+    val listOfDocument = listOf("pdf" , "docx", "txt") // More on the way *Not Working Yet*
+    var result = arrayListOf<File>()
+    var flag = true
+    files.forEach { file ->
+        if (listOfVideo.indexOf(previous) != -1 && listOfVideo.indexOf(file.name.split(".")[1]) != -1 ||
+            listOfImage.indexOf(previous) != -1 && listOfImage.indexOf(file.name.split(".")[1]) != -1 ||
+            listOfDocument.indexOf(previous) != -1 && listOfDocument.indexOf(file.name.split(".")[1]) != -1) {
+            result.add(file)
+        }
+    }
+    if (result.size != files.size) return Filetype.ERROR
+    when (files[0].name.split(".")[1]) {
+        "mp4" , "mov", "avi", "flv", "gif" -> {
+            return Filetype.VIDEO
+        }
+        "png" , "jpeg", "jpg", "webp", "bmp" -> {
+            return Filetype.IMAGE
+        }
+        "pdf" , "docx", "txt" -> {
+            return Filetype.DOCUMENT
+        }
+        else -> return Filetype.ERROR
+    }
+}
 
 fun openFileDialog(
     window: ComposeWindow,
     title: String,
     allowedExtensions: List<String>,
     allowMultiSelection: Boolean = true
-): Set<File> {
+): List<File> {
     return FileDialog(window, title, FileDialog.LOAD).apply {
         isMultipleMode = allowMultiSelection
 
@@ -154,7 +204,7 @@ fun openFileDialog(
         }
 
         isVisible = true
-    }.files.toSet()
+    }.files.toList()
 }
 
 fun main() = application {
