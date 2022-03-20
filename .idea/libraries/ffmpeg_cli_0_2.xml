@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="ffmpeg-cli-0.2">
-    <CLASSES>
-      <root url="jar://$USER_HOME$/Downloads/ffmpeg-cli-0.2.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

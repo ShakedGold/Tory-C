@@ -1,3 +1,3 @@
 enum class Mode {
-    IMPORT, CONVERT
+    IMPORT,CONVERT,FOLDER_SELECT
 }
