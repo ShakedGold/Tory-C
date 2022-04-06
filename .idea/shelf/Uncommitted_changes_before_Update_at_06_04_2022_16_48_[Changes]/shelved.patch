@@ -1,0 +1,172 @@
+Index: src/main/kotlin/Main.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import androidx.compose.animation.core.animateFloatAsState\r\nimport androidx.compose.foundation.layout.*\r\nimport androidx.compose.foundation.lazy.LazyColumn\r\nimport androidx.compose.material.*\r\nimport androidx.compose.runtime.*\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.ExperimentalComposeUiApi\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.awt.ComposeWindow\r\nimport androidx.compose.ui.draw.alpha\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.unit.DpSize\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.compose.ui.window.*\r\nimport net.bramp.ffmpeg.FFmpeg\r\nimport net.bramp.ffmpeg.FFmpegExecutor\r\nimport net.bramp.ffmpeg.FFprobe\r\nimport net.bramp.ffmpeg.RunProcessFunction\r\nimport net.bramp.ffmpeg.builder.FFmpegBuilder\r\nimport net.bramp.ffmpeg.progress.Progress\r\nimport net.bramp.ffmpeg.progress.ProgressListener\r\nimport java.awt.FileDialog\r\nimport java.io.File\r\nimport java.util.concurrent.TimeUnit\r\nimport kotlin.concurrent.thread\r\n\r\n\r\nval func = RunProcessFunction()\r\nvar percentage = 0f\r\n\r\n@Composable\r\nfun App() {\r\n    func.setWorkingDirectory(System.getProperty(\"user.dir\"))\r\n    MaterialTheme {\r\n        screen()\r\n    }\r\n}\r\n\r\n@OptIn(ExperimentalComposeUiApi::class)\r\n@Composable\r\nfun screen() {\r\n    var mode by remember { mutableStateOf(Mode.IMPORT) }\r\n    var files by remember { mutableStateOf(listOf<File>()) }\r\n    var ffmpeg by remember { mutableStateOf(FFmpeg()) }\r\n    var ffprobe by remember { mutableStateOf(FFprobe()) }\r\n    var progress by remember { mutableStateOf(0f) }\r\n    val animatedProgress = animateFloatAsState(targetValue = progress, animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec).value\r\n    when (mode) {\r\n        Mode.IMPORT -> {\r\n            Column(\r\n                modifier = Modifier.fillMaxSize(),\r\n                horizontalAlignment = Alignment.CenterHorizontally,\r\n                verticalArrangement = Arrangement.Center\r\n            ) {\r\n                Row {\r\n                    Text(\"Click On \", fontSize = 20.sp)\r\n                    Text(\"Import Files\", fontSize = 20.sp, fontWeight = FontWeight.Bold)\r\n                    Text(\" to Start Converting!\", fontSize = 20.sp)\r\n                }\r\n                Spacer(modifier = Modifier.padding(20.dp))\r\n                Button(onClick = {\r\n                    val os = OSValidator.checkOS()\r\n                    when (os) {\r\n                        \"Windows\" -> {\r\n                            ffmpeg =\r\n                                FFmpeg(\"${System.getProperty(\"user.dir\")}\\\\src\\\\main\\\\kotlin\\\\FFmpeg Files\\\\Windows\\\\ffmpeg\")\r\n                            ffprobe =\r\n                                FFprobe(\"${System.getProperty(\"user.dir\")}\\\\src\\\\main\\\\kotlin\\\\FFmpeg Files\\\\Windows\\\\ffprobe\")\r\n                        }\r\n                        \"Mac\" -> {\r\n                            ffmpeg = FFmpeg(\"${System.getProperty(\"user.dir\")}/src/main/kotlin/FFmpeg Files/Mac/ffmpeg\")\r\n                            ffprobe =\r\n                                FFprobe(\"${System.getProperty(\"user.dir\")}/src/main/kotlin/FFmpeg Files/Mac/ffprobe\")\r\n                        }\r\n                        \"Linux\" -> {\r\n                            ffmpeg =\r\n                                FFmpeg(\"${System.getProperty(\"user.dir\")}/src/main/kotlin/FFmpeg Files/Linux/ffmpeg\")\r\n                            ffprobe =\r\n                                FFprobe(\"${System.getProperty(\"user.dir\")}/src/main/kotlin/FFmpeg Files/Linux/ffprobe\")\r\n                        }\r\n                        else -> {\r\n                            ffmpeg =\r\n                                FFmpeg(\"${System.getProperty(\"user.dir\")}\\\\src\\\\main\\\\kotlin\\\\FFmpeg Files\\\\Windows\\\\ffmpeg\")\r\n                            ffprobe =\r\n                                FFprobe(\"${System.getProperty(\"user.dir\")}\\\\src\\\\main\\\\kotlin\\\\FFmpeg Files\\\\Windows\\\\ffprobe\")\r\n                        }\r\n                    }\r\n                    files = openFileDialog(\r\n                        ComposeWindow(),\r\n                        \"Select File\",\r\n                        listOf(\r\n                            \"mp4\",\r\n                            \"mov\",\r\n                            \"avi\",\r\n                            \"flv\",\r\n                            \"gif\",\r\n                            \"png\",\r\n                            \"jpeg\",\r\n                            \"jpg\",\r\n                            \"webp\",\r\n                            \"bmp\",\r\n                            \"pdf\",\r\n                            \"docx\",\r\n                            \"txt\"\r\n                        )\r\n                    )\r\n                    mode = Mode.CONVERT\r\n                }) { Text(\"Import Files\") }\r\n            }\r\n        }\r\n        Mode.CONVERT -> {\r\n            println(percentage)\r\n            var expanded by remember { mutableStateOf(false) }\r\n            var alpha by remember { mutableStateOf(0f) }\r\n            Column(Modifier.fillMaxSize()) {\r\n                LazyColumn(Modifier.weight(1f)) {\r\n                    item {\r\n                        when (determineFiletype(files)) {\r\n                            Filetype.VIDEO -> {\r\n                                Button(\r\n                                    onClick = { expanded = true },\r\n                                    modifier = Modifier.fillMaxWidth().padding(5.dp)\r\n                                ) { Text(\"Choose Format\") }\r\n                                LinearProgressIndicator(progress = animatedProgress, modifier = Modifier.fillMaxWidth().size(10.dp).alpha(alpha))\r\n                                Column {\r\n                                    DropdownMenu(\r\n                                        expanded = expanded,\r\n                                        onDismissRequest = { expanded = false },\r\n                                        modifier = Modifier.fillMaxWidth()\r\n                                    ) {\r\n                                        DropdownMenuItem(onClick = {\r\n                                            thread(start = true, isDaemon = false) {\r\n                                                while (progress <= 1) {\r\n                                                    progress = percentage\r\n                                                }\r\n                                            }\r\n                                            alpha = 100f\r\n                                            expanded = false\r\n                                            convertTo(\"mov\", files, ffmpeg, ffprobe)\r\n                                        }) { Text(\"MOV\") }\r\n                                        DropdownMenuItem(onClick = {\r\n                                            thread(start = true, isDaemon = false) {\r\n                                                while (progress <= 1) {\r\n                                                    progress = percentage\r\n                                                }\r\n                                            }\r\n                                            alpha = 100f\r\n                                            expanded = false\r\n                                            convertTo(\"mp4\", files, ffmpeg, ffprobe)\r\n                                        }) { Text(\"MP4\") }\r\n                                        DropdownMenuItem(onClick = {\r\n                                            thread(start = true, isDaemon = false) {\r\n                                                while (progress <= 1) {\r\n                                                    progress = percentage\r\n                                                }\r\n                                            }\r\n                                            alpha = 100f\r\n                                            expanded = false\r\n                                            convertTo(\"avi\", files, ffmpeg, ffprobe)\r\n                                        }) { Text(\"AVI\") }\r\n                                        DropdownMenuItem(onClick = {\r\n                                            thread(start = true, isDaemon = false) {\r\n                                                while (progress <= 1) {\r\n                                                    progress = percentage\r\n                                                }\r\n                                            }\r\n                                            alpha = 100f\r\n                                            expanded = false\r\n                                            convertTo(\"flv\", files, ffmpeg, ffprobe)\r\n                                        }) { Text(\"FLV\") }\r\n                                        DropdownMenuItem(onClick = {\r\n                                            thread(start = true, isDaemon = false) {\r\n                                                while (progress < 1) {\r\n                                                    progress = percentage\r\n                                                }\r\n                                            }\r\n                                            alpha = 100f\r\n                                            expanded = false\r\n                                            convertTo(\"gif\", files, ffmpeg, ffprobe)\r\n                                        }) { Text(\"GIF\") }\r\n                                    }\r\n                                }\r\n                            }\r\n                            Filetype.IMAGE -> {\r\n                                Button(\r\n                                    onClick = { expanded = true },\r\n                                    modifier = Modifier.fillMaxWidth().padding(5.dp)\r\n                                ) {\r\n                                    Text(\"Choose Format\")\r\n                                }\r\n                                Column {\r\n                                    DropdownMenu(\r\n                                        expanded = expanded,\r\n                                        onDismissRequest = { expanded = false },\r\n                                        modifier = Modifier.fillMaxWidth()\r\n                                    ) {\r\n                                        DropdownMenuItem(onClick = {}) { Text(\"PNG\") }\r\n                                        DropdownMenuItem(onClick = {}) { Text(\"JPG\") }\r\n                                        DropdownMenuItem(onClick = {}) { Text(\"JPEG\") }\r\n                                        DropdownMenuItem(onClick = {}) { Text(\"WEBP\") }\r\n                                        DropdownMenuItem(onClick = {}) { Text(\"BMP\") }\r\n                                    }\r\n                                }\r\n                            }\r\n                            Filetype.DOCUMENT -> {\r\n                                Button(\r\n                                    onClick = { expanded = true },\r\n                                    modifier = Modifier.fillMaxWidth().padding(5.dp)\r\n                                ) {\r\n                                    Text(\"Choose Format\")\r\n                                }\r\n                                Column {\r\n                                    DropdownMenu(\r\n                                        expanded = expanded,\r\n                                        onDismissRequest = { expanded = false },\r\n                                        modifier = Modifier.fillMaxWidth()\r\n                                    ) {\r\n                                        DropdownMenuItem(onClick = {}) { Text(\"PDF\") }\r\n                                        DropdownMenuItem(onClick = {}) { Text(\"DOCX\") }\r\n                                        DropdownMenuItem(onClick = {}) { Text(\"TXT\") }\r\n                                    }\r\n                                }\r\n                            }\r\n                            else -> {\r\n                                Text(\r\n                                    \"An Error has Occurred, Please Try Again\",\r\n                                    modifier = Modifier.align(Alignment.CenterHorizontally),\r\n                                    fontSize = 20.sp,\r\n                                    color = Color.Red\r\n                                )\r\n                            }\r\n                        }\r\n                    }\r\n                }\r\n                Button(\r\n                    onClick = { mode = Mode.IMPORT },\r\n                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(20.dp)\r\n                ) {\r\n                    Text(\"Back\")\r\n                }\r\n            }\r\n        }\r\n        else -> {}\r\n    }\r\n}\r\n\r\nfun convertTo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe) {\r\n    files.forEach { file ->\r\n            val executor = FFmpegExecutor(ffmpeg, ffprobe)\r\n            val `in` = ffprobe.probe(file.path)\r\n\r\n            val builder = FFmpegBuilder()\r\n                .setInput(`in`)\r\n                .addOutput(\"${file.name.split(\".\")[0]}.$s\")\r\n                .setVideoCodec(\"copy\")\r\n                .setAudioCodec(\"copy\")\r\n                .done()\r\n            val job = executor.createJob(builder, object : ProgressListener {\r\n                val duration_ns = `in`.getFormat().duration * TimeUnit.SECONDS.toNanos(1)\r\n                override fun progress(progress: Progress) {\r\n                    percentage = (progress.out_time_ns / duration_ns).toFloat()\r\n                }\r\n            })\r\n            job.run()\r\n    }\r\n}\r\n\r\nfun determineFiletype(files: List<File>): Filetype {\r\n    if (files.isEmpty()) return Filetype.ERROR\r\n    val previous = files[0].name.split(\".\")[1]\r\n    val listOfVideo = listOf(\"mp4\", \"mov\", \"avi\", \"flv\", \"gif\") // Working maybe more formats\r\n    val listOfImage = listOf(\"png\", \"jpeg\", \"jpg\", \"webp\", \"bmp\") // More on the way *Not working yet*\r\n    val listOfDocument = listOf(\"pdf\", \"docx\", \"txt\") // More on the way *Not Working Yet*\r\n    val result = arrayListOf<File>()\r\n    files.forEach { file ->\r\n        if (listOfVideo.indexOf(previous) != -1 && listOfVideo.indexOf(file.name.split(\".\")[1]) != -1 ||\r\n            listOfImage.indexOf(previous) != -1 && listOfImage.indexOf(file.name.split(\".\")[1]) != -1 ||\r\n            listOfDocument.indexOf(previous) != -1 && listOfDocument.indexOf(file.name.split(\".\")[1]) != -1\r\n        ) {\r\n            result.add(file)\r\n        }\r\n    }\r\n    if (result.size != files.size) return Filetype.ERROR\r\n    return when (files[0].name.split(\".\")[1]) {\r\n        \"mp4\", \"mov\", \"avi\", \"flv\", \"gif\" -> {\r\n            Filetype.VIDEO\r\n        }\r\n        \"png\", \"jpeg\", \"jpg\", \"webp\", \"bmp\" -> {\r\n            Filetype.IMAGE\r\n        }\r\n        \"pdf\", \"docx\", \"txt\" -> {\r\n            Filetype.DOCUMENT\r\n        }\r\n        else -> Filetype.ERROR\r\n    }\r\n}\r\n\r\nfun openFileDialog(\r\n    window: ComposeWindow,\r\n    title: String,\r\n    allowedExtensions: List<String>,\r\n    allowMultiSelection: Boolean = true\r\n): List<File> {\r\n    return FileDialog(window, title, FileDialog.LOAD).apply {\r\n        isMultipleMode = allowMultiSelection\r\n\r\n        // windows\r\n        file = allowedExtensions.joinToString(\";\") { \"*$it\" } // e.g. '*.jpg'\r\n\r\n        // linux\r\n        setFilenameFilter { _, name ->\r\n            allowedExtensions.any {\r\n                name.endsWith(it)\r\n            }\r\n        }\r\n\r\n        isVisible = true\r\n    }.files.toList()\r\n}\r\n\r\nfun main() = application {\r\n    Window(\r\n        onCloseRequest = ::exitApplication,\r\n        title = \"File Convertor\",\r\n        state = WindowState(size = DpSize(430.dp, 400.dp), position = WindowPosition(Alignment.Center))\r\n    ) {\r\n        App()\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/kotlin/Main.kt b/src/main/kotlin/Main.kt
+--- a/src/main/kotlin/Main.kt	(revision a99d27de77bf8c26fa858b2d78917abc0ff7d161)
++++ b/src/main/kotlin/Main.kt	(date 1647789551610)
+@@ -9,6 +9,7 @@
+ import androidx.compose.ui.awt.ComposeWindow
+ import androidx.compose.ui.draw.alpha
+ import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.text.font.FontStyle
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.DpSize
+ import androidx.compose.ui.unit.dp
+@@ -31,7 +32,7 @@
+ var percentage = 0f
+ 
+ @Composable
+-fun App() {
++fun app() {
+     func.setWorkingDirectory(System.getProperty("user.dir"))
+     MaterialTheme {
+         screen()
+@@ -61,8 +62,7 @@
+                 }
+                 Spacer(modifier = Modifier.padding(20.dp))
+                 Button(onClick = {
+-                    val os = OSValidator.checkOS()
+-                    when (os) {
++                    when (OSValidator.checkOS()) {
+                         "Windows" -> {
+                             ffmpeg =
+                                 FFmpeg("${System.getProperty("user.dir")}\\src\\main\\kotlin\\FFmpeg Files\\Windows\\ffmpeg")
+@@ -123,7 +123,13 @@
+                                     onClick = { expanded = true },
+                                     modifier = Modifier.fillMaxWidth().padding(5.dp)
+                                 ) { Text("Choose Format") }
+-                                LinearProgressIndicator(progress = animatedProgress, modifier = Modifier.fillMaxWidth().size(10.dp).alpha(alpha))
++                                if (alpha == 100f) {
++                                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
++                                        Text("Converting...", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally).alpha(alpha))
++                                        Spacer(modifier = Modifier.padding(5.dp))
++                                        LinearProgressIndicator(progress = animatedProgress, modifier = Modifier.fillMaxWidth().size(10.dp).alpha(alpha))
++                                    }
++                                }
+                                 Column {
+                                     DropdownMenu(
+                                         expanded = expanded,
+@@ -138,7 +144,7 @@
+                                             }
+                                             alpha = 100f
+                                             expanded = false
+-                                            convertTo("mov", files, ffmpeg, ffprobe)
++                                            convertVideo("mov", files, ffmpeg, ffprobe)
+                                         }) { Text("MOV") }
+                                         DropdownMenuItem(onClick = {
+                                             thread(start = true, isDaemon = false) {
+@@ -148,7 +154,7 @@
+                                             }
+                                             alpha = 100f
+                                             expanded = false
+-                                            convertTo("mp4", files, ffmpeg, ffprobe)
++                                            convertVideo("mp4", files, ffmpeg, ffprobe)
+                                         }) { Text("MP4") }
+                                         DropdownMenuItem(onClick = {
+                                             thread(start = true, isDaemon = false) {
+@@ -158,7 +164,7 @@
+                                             }
+                                             alpha = 100f
+                                             expanded = false
+-                                            convertTo("avi", files, ffmpeg, ffprobe)
++                                            convertVideo("avi", files, ffmpeg, ffprobe)
+                                         }) { Text("AVI") }
+                                         DropdownMenuItem(onClick = {
+                                             thread(start = true, isDaemon = false) {
+@@ -168,7 +174,7 @@
+                                             }
+                                             alpha = 100f
+                                             expanded = false
+-                                            convertTo("flv", files, ffmpeg, ffprobe)
++                                            convertVideo("flv", files, ffmpeg, ffprobe)
+                                         }) { Text("FLV") }
+                                         DropdownMenuItem(onClick = {
+                                             thread(start = true, isDaemon = false) {
+@@ -178,7 +184,7 @@
+                                             }
+                                             alpha = 100f
+                                             expanded = false
+-                                            convertTo("gif", files, ffmpeg, ffprobe)
++                                            convertVideo("gif", files, ffmpeg, ffprobe)
+                                         }) { Text("GIF") }
+                                     }
+                                 }
+@@ -246,17 +252,18 @@
+     }
+ }
+ 
+-fun convertTo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe) {
+-    files.forEach { file ->
++fun convertVideo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe) {
++    thread(start = true, isDaemon = false) {
++        files.forEach { file ->
+             val executor = FFmpegExecutor(ffmpeg, ffprobe)
+             val `in` = ffprobe.probe(file.path)
+-
+-            val builder = FFmpegBuilder()
+-                .setInput(`in`)
+-                .addOutput("${file.name.split(".")[0]}.$s")
+-                .setVideoCodec("copy")
+-                .setAudioCodec("copy")
+-                .done()
++            val builder = FFmpegBuilder().setInput(`in`)
++            if (s != "gif") {
++                builder.addOutput("${file.nameWithoutExtension}.$s").setAudioCodec("copy").setVideoCodec("copy").done()
++            }
++            else {
++                builder.addOutput("${file.nameWithoutExtension}.$s").setVideoFrameRate(24.0).setTargetSize(300L).done()
++            }
+             val job = executor.createJob(builder, object : ProgressListener {
+                 val duration_ns = `in`.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
+                 override fun progress(progress: Progress) {
+@@ -264,12 +271,13 @@
+                 }
+             })
+             job.run()
++        }
+     }
+ }
+ 
+ fun determineFiletype(files: List<File>): Filetype {
+     if (files.isEmpty()) return Filetype.ERROR
+-    val previous = files[0].name.split(".")[1]
++    val previous = files[0].extension.lowercase()
+     val listOfVideo = listOf("mp4", "mov", "avi", "flv", "gif") // Working maybe more formats
+     val listOfImage = listOf("png", "jpeg", "jpg", "webp", "bmp") // More on the way *Not working yet*
+     val listOfDocument = listOf("pdf", "docx", "txt") // More on the way *Not Working Yet*
+@@ -283,7 +291,7 @@
+         }
+     }
+     if (result.size != files.size) return Filetype.ERROR
+-    return when (files[0].name.split(".")[1]) {
++    return when (files[0].extension.lowercase()) {
+         "mp4", "mov", "avi", "flv", "gif" -> {
+             Filetype.VIDEO
+         }
+@@ -326,6 +334,6 @@
+         title = "File Convertor",
+         state = WindowState(size = DpSize(430.dp, 400.dp), position = WindowPosition(Alignment.Center))
+     ) {
+-        App()
++        app()
+     }
+ }
+Index: build/kotlin/compileKotlin/caches-jvm/lookups/counters.tab
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>61\r\n0
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/build/kotlin/compileKotlin/caches-jvm/lookups/counters.tab b/build/kotlin/compileKotlin/caches-jvm/lookups/counters.tab
+--- a/build/kotlin/compileKotlin/caches-jvm/lookups/counters.tab	(revision a99d27de77bf8c26fa858b2d78917abc0ff7d161)
++++ b/build/kotlin/compileKotlin/caches-jvm/lookups/counters.tab	(date 1647789558960)
+@@ -1,2 +1,2 @@
+-61
++81
+ 0
+\ No newline at end of file
