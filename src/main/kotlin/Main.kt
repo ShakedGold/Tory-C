@@ -170,8 +170,7 @@ fun screen() {
                                             }
                                             alpha = 100f
                                             expanded = false
-                                            var error = convertTo("flv", files, ffmpeg, ffprobe)
-                                            println(error)
+                                            convertTo("flv", files, ffmpeg, ffprobe)
                                         }) { Text("FLV") }
                                         DropdownMenuItem(onClick = {
                                             thread(start = true, isDaemon = false) {
@@ -251,38 +250,29 @@ fun screen() {
     }
 }
 
-fun convertTo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe): String {
-    var error = ""
+fun convertTo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe) {
     thread(start = true, isDaemon = false) {
         files.forEach { file ->
             val executor = FFmpegExecutor(ffmpeg, ffprobe)
             val `in` = ffprobe.probe(file.path)
 
-
-            val builder = FFmpegBuilder()
-                .setInput(`in`)
-            if(s.lowercase() == file.extension.lowercase()) {
-                error = "Cant convert to the same filetype"
-                return@thread
+            val builder = FFmpegBuilder().setInput(`in`)
+            if (s == "gif") {
+                builder.addOutput("${System.getProperty("user.dir")}/src/main/kotlin/Result/${file.nameWithoutExtension}.$s")
+                    .setVideoBitRate(100_000 * options[0].toString().toLong())
+                    .setVideoFrameRate(options[1].toString().toDouble())
+                    .addExtraArgs("-vf","scale=-2:${options[2]}")
+                    .setAudioCodec("copy")
+                    .done()
             }
             else {
-                if (s == "gif") {
-                    builder.addOutput("${System.getProperty("user.dir")}/src/main/kotlin/Result/${file.nameWithoutExtension}.$s")
-                        .setVideoBitRate(100_000 * options[0].toString().toLong())
-                        .setVideoFrameRate(options[1].toString().toDouble())
-                        .addExtraArgs("-vf","scale=-1:${options[2]}")
-                        .setAudioCodec("copy")
-                        .done()
-                }
-                else {
-                    builder.addOutput("${System.getProperty("user.dir")}/src/main/kotlin/Result/${file.nameWithoutExtension}.$s")
-                        .setVideoBitRate(100_000 * options[0].toString().toLong())
-                        .setVideoFrameRate(options[1].toString().toDouble())
-                        .addExtraArgs("-vf","scale=-1:${options[2]}")
-                        .setVideoCodec("h264")
-                        .setAudioCodec("copy")
-                        .done()
-                }
+                builder.addOutput("${System.getProperty("user.dir")}/src/main/kotlin/Result/${file.nameWithoutExtension}.$s")
+                    .setVideoBitRate(100_000 * options[0].toString().toLong())
+                    .setVideoFrameRate(options[1].toString().toDouble())
+                    .addExtraArgs("-vf","scale=-2:${options[2]}")
+                    .setVideoCodec("h264")
+                    .setAudioCodec("copy")
+                    .done()
             }
             val job = executor.createJob(builder, object : ProgressListener {
                 val duration_ns = `in`.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
@@ -294,7 +284,6 @@ fun convertTo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe): S
             counterFiles++
         }
     }
-    return error
 }
 
 fun determineFilesType(files: List<File>): Filetype {
@@ -313,7 +302,7 @@ fun determineFilesType(files: List<File>): Filetype {
 
 fun determineFileType(fileExt: String) : Filetype {
     return when(fileExt.lowercase()) {
-        "mp4", "mov", "gif", "flv" -> {
+        "mp4", "mov", "gif", "flv", "avi" -> {
             Filetype.VIDEO
         }
         "png", "jpeg", "jpg", "webp", "bmp" -> {
@@ -421,12 +410,12 @@ fun Expandable() {
                             DropdownMenu(expanded = qualityExpanded, onDismissRequest = {qualityExpanded = !qualityExpanded}) {
                                 DropdownMenuItem(onClick = {
                                     qualityExpanded = false
-                                    quality = "1080p"
-                                }) {Text("1080")}
+                                    quality = "1080"
+                                }) {Text("1080p")}
                                 DropdownMenuItem(onClick = {
                                     qualityExpanded = false
-                                    quality = "720p"
-                                }) {Text("720")}
+                                    quality = "720"
+                                }) {Text("720p")}
                                 DropdownMenuItem(onClick = {
                                     qualityExpanded = false
                                     quality = "480"
