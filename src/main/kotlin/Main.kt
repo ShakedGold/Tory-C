@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -20,7 +19,6 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -32,22 +30,48 @@ import net.bramp.ffmpeg.FFprobe
 import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
+import net.tomahawk.XFileDialog
 import java.awt.FileDialog
 import java.io.*
 import java.util.concurrent.TimeUnit
+import javax.swing.JFileChooser
+import javax.swing.UIManager
 import kotlin.concurrent.thread
 
 
 var percentage = 0f
 var counterFiles = 0
-var options = listOf(15L, 60, "1080")
+var options = listOf(25L, 60, "1080")
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun App() {
     MaterialTheme {
-        screen()
+        folderDialog()
     }
+}
+
+@Composable
+fun folderDialog() {
+    Button(onClick = {
+        when (OSValidator.checkOS()) {
+            "Windows" -> {
+                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
+            }
+            "Mac" -> {
+                UIManager.setLookAndFeel("sun.lwawt.macosx.LWCToolkit")
+            }
+            "Linux" -> {
+                UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel")
+            }
+            else -> {
+                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
+            }
+        }
+        val f = JFileChooser()
+        f.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+        f.showSaveDialog(null)
+    }){ Text("Open Folder") }
 }
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
@@ -99,7 +123,7 @@ fun screen() {
                                 FFprobe("${System.getProperty("user.dir")}\\src\\main\\kotlin\\FFmpeg Files\\Windows\\ffprobe")
                         }
                     }
-                    files = openFileDialog(ComposeWindow(), "Choose Files", listOf("mov", "mp4", "flv", "avi", "png", "jpeg"), true)
+                    files = openFileDialog(ComposeWindow(), "Choose Files", listOf("mov", "mp4", "flv", "avi", "png", "jpeg", "gif"), true)
                     mode = Mode.CONVERT
                 }) { Text("Import Files") }
                 Spacer(modifier = Modifier.padding(10.dp))
@@ -239,7 +263,10 @@ fun screen() {
                     }
                 }
                 Button(
-                    onClick = { mode = Mode.IMPORT },
+                    onClick = {
+                        mode = Mode.IMPORT
+                        currentlyDoing = "Converting..."
+                    },
                     modifier = Modifier.align(Alignment.CenterHorizontally).padding(20.dp)
                 ) {
                     Text("Back")
@@ -251,14 +278,15 @@ fun screen() {
 }
 
 fun convertTo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe) {
+    var filesWithCounter: MutableMap<String, Int> = files.associate{ Pair(it.name, 0) }.toMutableMap()
     thread(start = true, isDaemon = false) {
         files.forEach { file ->
             val executor = FFmpegExecutor(ffmpeg, ffprobe)
             val `in` = ffprobe.probe(file.path)
-
+            val resultPath = "${System.getProperty("user.dir")}/src/main/kotlin/Result/${file.nameWithoutExtension}.$s"
             val builder = FFmpegBuilder().setInput(`in`)
             if (s == "gif") {
-                builder.addOutput("${System.getProperty("user.dir")}/src/main/kotlin/Result/${file.nameWithoutExtension}.$s")
+                builder.addOutput(resultPath)
                     .setVideoBitRate(100_000 * options[0].toString().toLong())
                     .setVideoFrameRate(options[1].toString().toDouble())
                     .addExtraArgs("-vf","scale=-2:${options[2]}")
@@ -266,7 +294,7 @@ fun convertTo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe) {
                     .done()
             }
             else {
-                builder.addOutput("${System.getProperty("user.dir")}/src/main/kotlin/Result/${file.nameWithoutExtension}.$s")
+                builder.addOutput(resultPath)
                     .setVideoBitRate(100_000 * options[0].toString().toLong())
                     .setVideoFrameRate(options[1].toString().toDouble())
                     .addExtraArgs("-vf","scale=-2:${options[2]}")
@@ -343,7 +371,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "File Convertor",
-        state = WindowState(size = DpSize(430.dp, 400.dp), position = WindowPosition(Alignment.Center))
+        state = WindowState(size = DpSize(430.dp, 440.dp), position = WindowPosition(Alignment.Center))
     ) {
         App()
     }
