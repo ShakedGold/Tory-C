@@ -53,23 +53,6 @@ fun App() {
     }
 }
 
-fun folderDialog(): File {
-    when (OSValidator.checkOS()) {
-        "Windows" -> {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
-        }
-        "Mac" -> {}
-        "Linux" -> {}
-        else -> {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
-        }
-    }
-    val f = JFileChooser()
-    f.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-    f.showSaveDialog(null)
-    return f.selectedFile
-}
-
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun screen() {
@@ -132,12 +115,13 @@ fun screen() {
                         listOf("mov", "mp4", "flv", "avi", "png", "jpeg", "gif", "jpg"),
                         true
                     )
-                    mode = Mode.SETTINGS
+                    if (files.isNotEmpty())
+                        mode = Mode.SETTINGS
                 }) { Text("Import Files") }
                 Spacer(modifier = Modifier.padding(10.dp))
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                    text = "Please don't import different types of formats for example: mp4 and a txt, in the same conversion",
+                    text = "Please don't import different types of formats for example: mp4 and a png, in the same conversion",
                     color = Color.Gray,
                     fontSize = 15.sp,
                     textAlign = TextAlign.Center
@@ -233,34 +217,6 @@ fun screen() {
                                     }) { Text("Convert To BMP") }
                                 }
                             }
-                            Filetype.DOCUMENT -> {
-                                Button(
-                                    onClick = { expanded = true },
-                                    modifier = Modifier.fillMaxWidth().padding(5.dp)
-                                ) {
-                                    Text("Choose Format")
-                                }
-                                Column {
-                                    DropdownMenu(
-                                        expanded = expanded,
-                                        onDismissRequest = { expanded = false },
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        DropdownMenuItem(onClick = {}) { Text("PDF") }
-                                        DropdownMenuItem(onClick = {}) { Text("DOCX") }
-                                        DropdownMenuItem(onClick = {}) { Text("TXT") }
-                                    }
-                                }
-                            }
-                            Filetype.ERROR -> {
-                                Text(
-                                    "An Error has Occurred, Please Try Again",
-                                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                                    fontSize = 20.sp,
-                                    color = Color.Red
-                                )
-                            }
-                            Filetype.NOT_DEFINED -> {}
                         }
                     }
                 }
@@ -350,6 +306,7 @@ fun screen() {
                                         progress = percentage
                                         currentlyDoing = "Finished Converting $counterFiles Files"
                                         if (files.size == counterFiles) {
+                                            currentlyDoing = "Finished Converting ${files.size} Files"
                                             backEnabled = true
                                             progress = 1f
                                             break
@@ -359,13 +316,10 @@ fun screen() {
                                 alpha = 100f
                                 when(determineFilesType(files)) {
                                     Filetype.VIDEO -> {
-                                        convertTo(formatSelected.lowercase(), files, ffmpeg, ffprobe, folder)
+                                        convertVideo(formatSelected.lowercase(), files, ffmpeg, ffprobe, folder)
                                     }
                                     Filetype.IMAGE -> {
                                         convertImage(files, formatSelected.lowercase(), folder)
-                                    }
-                                    Filetype.DOCUMENT -> {
-                                        //document conversion
                                     }
                                     else -> {}
                                 }
@@ -377,133 +331,6 @@ fun screen() {
             }
         }
     }
-}
-
-fun convertImage(files: List<File>, format: String, directory: String) {
-    thread(start = true, isDaemon = false) {
-        val filesSize = files.size
-        var counter = 0
-        var resultPath = ""
-        files.forEach { file ->
-            if (directory[directory.length - 1] == '\\')
-                resultPath = "${directory}${file.nameWithoutExtension}.$format"
-            else {
-                when(OSValidator.checkOS()) {
-                    "Windows" -> {
-                        resultPath = "${directory}\\${file.nameWithoutExtension}.$format"
-                    }
-                    "Mac", "Linux" -> {
-                        resultPath = "${directory}/${file.nameWithoutExtension}.$format"
-                    }
-                }
-            }
-            ImageConverter.convertFormat(file.path, "$resultPath", format.uppercase())
-            counter++
-            percentage = counter.toFloat() / filesSize.toFloat()
-            counterFiles++
-        }
-    }
-}
-
-fun convertTo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe, directoryPath: String) {
-    thread(start = true, isDaemon = false) {
-        files.forEach { file ->
-            val executor = FFmpegExecutor(ffmpeg, ffprobe)
-            val `in` = ffprobe.probe(file.path)
-            var resultPath = ""
-            if (directoryPath[directoryPath.length - 1] == '\\')
-                resultPath = "${directoryPath}${file.nameWithoutExtension}.$s"
-            else {
-                when(OSValidator.checkOS()) {
-                    "Windows" -> {
-                        resultPath = "${directoryPath}\\${file.nameWithoutExtension}.$s"
-                    }
-                    "Mac", "Linux" -> {
-                        resultPath = "${directoryPath}/${file.nameWithoutExtension}.$s"
-                    }
-                }
-            }
-            val builder = FFmpegBuilder().setInput(`in`)
-            if (s == "gif") {
-                builder.addOutput(resultPath)
-                    .setVideoBitRate(100_000 * options[0].toString().toLong())
-                    .setVideoFrameRate(options[1].toString().toDouble())
-                    .addExtraArgs("-vf", "scale=-2:${options[2]}")
-                    .setAudioCodec("copy")
-                    .done()
-            } else {
-                builder.addOutput(resultPath)
-                    .setVideoBitRate(100_000 * options[0].toString().toLong())
-                    .setVideoFrameRate(options[1].toString().toDouble())
-                    .addExtraArgs("-vf", "scale=-2:${options[2]}")
-                    .setVideoCodec("h264")
-                    .setAudioCodec("copy")
-                    .done()
-            }
-            val job = executor.createJob(builder, object : ProgressListener {
-                val duration_ns = `in`.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
-                override fun progress(progress: Progress) {
-                    percentage = (progress.out_time_ns / duration_ns).toFloat()
-                }
-            })
-            job.run()
-            counterFiles++
-        }
-    }
-}
-
-fun determineFilesType(files: List<File>): Filetype {
-    if (files.isEmpty()) return Filetype.ERROR
-    else if (files.size == 1) return determineFileType(files[0].extension)
-
-    var current: String = files[1].extension
-    var prev: String = files[0].extension
-    files.forEach { file ->
-        if (determineFileType(current) != determineFileType(prev)) return Filetype.ERROR
-        current = file.extension
-        prev = current
-    }
-    return determineFileType(current)
-}
-
-fun determineFileType(fileExt: String): Filetype {
-    return when (fileExt.lowercase()) {
-        "mp4", "mov", "gif", "flv", "avi" -> {
-            Filetype.VIDEO
-        }
-        "png", "jpeg", "jpg", "webp", "bmp" -> {
-            Filetype.IMAGE
-        }
-        "pdf", "docx", "txt" -> {
-            Filetype.DOCUMENT
-        }
-        else -> {
-            Filetype.ERROR
-        }
-    }
-}
-
-fun openFileDialog(
-    window: ComposeWindow,
-    title: String,
-    allowedExtensions: List<String>,
-    allowMultiSelection: Boolean = true
-): List<File> {
-    return FileDialog(window, title, FileDialog.LOAD).apply {
-        isMultipleMode = allowMultiSelection
-
-        // windows
-        file = allowedExtensions.joinToString(";") { "*$it" } // e.g. '*.jpg'
-
-        // linux
-        setFilenameFilter { _, name ->
-            allowedExtensions.any {
-                name.endsWith(it)
-            }
-        }
-
-        isVisible = true
-    }.files.toList()
 }
 
 @ExperimentalAnimationApi
@@ -575,12 +402,141 @@ fun VideoSettings() {
     }
 }
 
+fun folderDialog(): File {
+    when (OSValidator.checkOS()) {
+        "Windows" -> {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
+        }
+        "Mac" -> {}
+        "Linux" -> {}
+        else -> {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
+        }
+    }
+    val f = JFileChooser()
+    f.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+    f.showSaveDialog(null)
+    return f.selectedFile
+}
+fun openFileDialog(window: ComposeWindow, title: String, allowedExtensions: List<String>, allowMultiSelection: Boolean = true): List<File> {
+    return FileDialog(window, title, FileDialog.LOAD).apply {
+        isMultipleMode = allowMultiSelection
+
+        // windows
+        file = allowedExtensions.joinToString(";") { "*$it" } // e.g. '*.jpg'
+
+        // linux
+        setFilenameFilter { _, name ->
+            allowedExtensions.any {
+                name.endsWith(it)
+            }
+        }
+
+        isVisible = true
+    }.files.toList()
+}
+
+fun convertImage(files: List<File>, format: String, directory: String) {
+    thread(start = true, isDaemon = false) {
+        val filesSize = files.size
+        var counter = 0
+        var resultPath = ""
+        files.forEach { file ->
+            if (directory[directory.length - 1] == '\\')
+                resultPath = "${directory}${file.nameWithoutExtension}.$format"
+            else {
+                when(OSValidator.checkOS()) {
+                    "Windows" -> {
+                        resultPath = "${directory}\\${file.nameWithoutExtension}.$format"
+                    }
+                    "Mac", "Linux" -> {
+                        resultPath = "${directory}/${file.nameWithoutExtension}.$format"
+                    }
+                }
+            }
+            ImageConverter.convertFormat(file.path, "$resultPath", format.uppercase())
+            counter++
+            percentage = counter.toFloat() / filesSize.toFloat()
+            counterFiles++
+        }
+    }
+}
+fun convertVideo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe, directoryPath: String) {
+    thread(start = true, isDaemon = false) {
+        files.forEach { file ->
+            val executor = FFmpegExecutor(ffmpeg, ffprobe)
+            val `in` = ffprobe.probe(file.path)
+            var resultPath = ""
+            if (directoryPath[directoryPath.length - 1] == '\\')
+                resultPath = "${directoryPath}${file.nameWithoutExtension}.$s"
+            else {
+                when(OSValidator.checkOS()) {
+                    "Windows" -> {
+                        resultPath = "${directoryPath}\\${file.nameWithoutExtension}.$s"
+                    }
+                    "Mac", "Linux" -> {
+                        resultPath = "${directoryPath}/${file.nameWithoutExtension}.$s"
+                    }
+                }
+            }
+            val builder = FFmpegBuilder().setInput(`in`)
+            if (s == "gif") {
+                builder.addOutput(resultPath)
+                    .setVideoBitRate(100_000 * options[0].toString().toLong())
+                    .setVideoFrameRate(options[1].toString().toDouble())
+                    .addExtraArgs("-vf", "scale=-2:${options[2]}")
+                    .setAudioCodec("copy")
+                    .done()
+            } else {
+                builder.addOutput(resultPath)
+                    .setVideoBitRate(100_000 * options[0].toString().toLong())
+                    .setVideoFrameRate(options[1].toString().toDouble())
+                    .addExtraArgs("-vf", "scale=-2:${options[2]}")
+                    .setVideoCodec("h264")
+                    .setAudioCodec("copy")
+                    .done()
+            }
+            val job = executor.createJob(builder, object : ProgressListener {
+                val duration_ns = `in`.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
+                override fun progress(progress: Progress) {
+                    percentage = (progress.out_time_ns / duration_ns).toFloat()
+                }
+            })
+            job.run()
+            counterFiles++
+        }
+    }
+}
+
+fun determineFilesType(files: List<File>): Filetype {
+    if (files.isEmpty()) return Filetype.ERROR
+    else if (files.size == 1) return determineFileType(files[0].extension)
+
+    var current: String = files[1].extension
+    var prev: String = files[0].extension
+    files.forEach { file ->
+        if (determineFileType(current) != determineFileType(prev)) return Filetype.ERROR
+        current = file.extension
+        prev = current
+    }
+    return determineFileType(current)
+}
+fun determineFileType(fileExt: String): Filetype {
+    return when (fileExt.lowercase()) {
+        "mp4", "mov", "gif", "flv", "avi" -> {
+            Filetype.VIDEO
+        }
+        "png", "jpeg", "jpg", "webp", "bmp" -> {
+            Filetype.IMAGE
+        }
+        else -> {
+            Filetype.ERROR
+        }
+    }
+}
+
 fun main() = application {
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = "File Convertor",
-        state = WindowState(size = DpSize(500.dp, 480.dp), position = WindowPosition(Alignment.Center))
-    ) {
+    Window(onCloseRequest = ::exitApplication, title = "File Convertor", state = WindowState(size = DpSize(500.dp, 480.dp), position = WindowPosition(Alignment.Center))) {
         App()
     }
 }
