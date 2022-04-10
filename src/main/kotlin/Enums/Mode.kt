@@ -1,5 +1,5 @@
 package Enums
 
 enum class Mode {
-    IMPORT,CONVERT,FOLDER_SELECT
+    IMPORT, FOLDER_SELECT, SETTINGS
 }
