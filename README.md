@@ -38,3 +38,4 @@ Click the type of file you want to convert to and other settings
 Choose the location
 Click on Start Converting
 ```
+<img src="https://i.imgur.com/ifkBFB1.gif">
