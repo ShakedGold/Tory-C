@@ -1,6 +1,6 @@
 # ToryC
 by Shaked Gold <br>
-a Video/Image Convertor that is run by Kotlin with the <a href="https://github.com/JetBrains/compose-jb" target="blank">Compose framework</a><br>
+a Video/Image Convertor that is run by Kotlin with the <a href="https://github.com/JetBrains/compose-jb" target="blank">Compose</a>framework<br>
 <br>
 <br>
 <p align="center">
