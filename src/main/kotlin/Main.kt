@@ -86,27 +86,22 @@ fun screen() {
                 Button(onClick = {
                     when (OSValidator.checkOS()) {
                         "Windows" -> {
-                            ffmpeg =
-                                FFmpeg("${System.getProperty("user.dir")}\\src\\main\\kotlin\\FFmpeg Files\\Windows\\ffmpeg")
-                            ffprobe =
-                                FFprobe("${System.getProperty("user.dir")}\\src\\main\\kotlin\\FFmpeg Files\\Windows\\ffprobe")
+                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}\\ffmpegFiles\\Windows\\ffmpeg")
+                            ffprobe = FFprobe("${System.getProperty("user.dir")}\\ffmpegFiles\\Windows\\ffprobe")
                         }
                         "Mac" -> {
-                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/src/main/kotlin/FFmpeg Files/Mac/ffmpeg")
-                            ffprobe =
-                                FFprobe("${System.getProperty("user.dir")}/src/main/kotlin/FFmpeg Files/Mac/ffprobe")
+                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpegFiles/Mac/ffmpeg")
+                            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffmpegFiles/Mac/ffprobe")
                         }
                         "Linux" -> {
-                            ffmpeg =
-                                FFmpeg("${System.getProperty("user.dir")}/src/main/kotlin/FFmpeg Files/Linux/ffmpeg")
-                            ffprobe =
-                                FFprobe("${System.getProperty("user.dir")}/src/main/kotlin/FFmpeg Files/Linux/ffprobe")
+                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpegFiles/Linux/ffmpeg")
+                            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffmpegFiles/Linux/ffprobe")
                         }
                         else -> {
                             ffmpeg =
-                                FFmpeg("${System.getProperty("user.dir")}\\src\\main\\kotlin\\FFmpeg Files\\Windows\\ffmpeg")
+                                FFmpeg("${System.getProperty("user.dir")}\\ffmpegFiles\\Windows\\ffmpeg")
                             ffprobe =
-                                FFprobe("${System.getProperty("user.dir")}\\src\\main\\kotlin\\FFmpeg Files\\Windows\\ffprobe")
+                                FFprobe("${System.getProperty("user.dir")}\\ffmpegFiles\\Windows\\ffprobe")
                         }
                     }
                     files = openFileDialog(

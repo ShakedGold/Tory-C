@@ -1,0 +1,16 @@
+--add-modules
+"java.base"
+--add-modules
+"java.desktop"
+--add-modules
+"java.logging"
+--add-modules
+"jdk.crypto.ec"
+--add-modules
+"java.sql"
+--strip-debug
+--no-header-files
+--no-man-pages
+--strip-native-commands
+--output
+"C:\\Users\\shake\\IdeaProjects\\All-File-Convertor\\build\\compose\\tmp\\main\\runtime"
