@@ -25,3 +25,16 @@ a Video/Image Convertor that is run by Kotlin with the <a href="https://github.c
   <img src="https://github.com/GorvGoyl/Notion-Boost-browser-extension/raw/master/src/images/readme/bmc.png" width="200" alt="Buy me a Coffee"/>
   </a>
 </p>
+
+# Usage
+
+---
+
+```py
+Open 'Tory Installer.exe'
+Install the program and open it up
+Click 'Import Files' and chose the files
+Click the type of file you want to convert to and other settings
+Choose the location
+Click on Start Converting
+```
