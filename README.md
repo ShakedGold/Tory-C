@@ -6,7 +6,7 @@ a Video/Image Convertor that is run by Kotlin with the <a href="https://github.c
 <p align="center">
   <img src="https://img.shields.io/github/downloads/ShakedGold/Tory-C/total?color=lime" width="100" alt="Downloads Total"/>
   &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-  <a href="https://github.com/ShakedGold/Tory-C/releases/tags/latest">
+  <a href="https://github.com/ShakedGold/Tory-C/releases/latest">
     <img src="https://img.shields.io/github/v/release/ShakedGold/Tory-C?color=yellow" width="100" alt="Releases"/>
   </a>
   &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
