@@ -86,22 +86,22 @@ fun screen() {
                 Button(onClick = {
                     when (OSValidator.checkOS()) {
                         "Windows" -> {
-                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}\\ffmpegFiles\\Windows\\ffmpeg")
-                            ffprobe = FFprobe("${System.getProperty("user.dir")}\\ffmpegFiles\\Windows\\ffprobe")
+                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}\\ffmpeg.exe")
+                            ffprobe = FFprobe("${System.getProperty("user.dir")}\\ffprobe.exe")
                         }
                         "Mac" -> {
-                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpegFiles/Mac/ffmpeg")
-                            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffmpegFiles/Mac/ffprobe")
+                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpeg")
+                            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffprobe")
                         }
                         "Linux" -> {
-                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpegFiles/Linux/ffmpeg")
-                            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffmpegFiles/Linux/ffprobe")
+                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpeg")
+                            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffprobe")
                         }
                         else -> {
                             ffmpeg =
-                                FFmpeg("${System.getProperty("user.dir")}\\ffmpegFiles\\Windows\\ffmpeg")
+                                FFmpeg("${System.getProperty("user.dir")}\\ffmpeg.exe")
                             ffprobe =
-                                FFprobe("${System.getProperty("user.dir")}\\ffmpegFiles\\Windows\\ffprobe")
+                                FFprobe("${System.getProperty("user.dir")}\\ffprobe.exe")
                         }
                     }
                     files = openFileDialog(
