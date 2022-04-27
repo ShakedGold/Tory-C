@@ -34,6 +34,16 @@ compose.desktop {
             description = "Video / Image Conversion App"
             copyright = "© 2022 Shaked Gold. All rights reserved."
             modules("java.sql")
+
+            macOS {
+                iconFile.set(project.file("icon.icns"))
+            }
+            windows {
+                iconFile.set(project.file("icon.ico"))
+            }
+            linux {
+                iconFile.set(project.file("icon.png"))
+            }
         }
         mainClass = "MainKt"
     }

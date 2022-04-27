@@ -7,11 +7,11 @@
 --java-options
 "'-Dcompose.application.resources.dir=$APPDIR\\resources'"
 --main-jar
-"C:\\Users\\shake\\IdeaProjects\\All-File-Convertor\\build\\compose\\tmp\\createDistributable\\libs\\untitled-1.0-8df6bca74ba1259c2aad41dbe8ae0db.jar"
+"C:\\Users\\shake\\IdeaProjects\\All-File-Convertor\\build\\compose\\tmp\\createDistributable\\libs\\untitled-1.0-c941f17e4059f4589941c9382def9785.jar"
 --main-class
 "MainKt"
 --icon
-"C:\\Users\\shake\\IdeaProjects\\All-File-Convertor\\build\\compose\\default-icons\\1.0.1\\icon-windows.ico"
+"C:\\Users\\shake\\IdeaProjects\\All-File-Convertor\\icon.ico"
 --java-options
 "'-Dcompose.application.configure.swing.globals=true'"
 --java-options

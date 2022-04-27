@@ -107,7 +107,7 @@ fun screen() {
                     files = openFileDialog(
                         ComposeWindow(),
                         "Choose Files",
-                        listOf("mov", "mp4", "flv", "avi", "png", "jpeg", "gif", "jpg"),
+                        listOf("mov", "mp4", "flv", "avi", "png", "jpeg", "gif", "jpg", ".mkv"),
                         true
                     )
                     if (files.isNotEmpty())
@@ -166,6 +166,11 @@ fun screen() {
                                             selectedFormat = true
                                         }) { Text("FLV") }
                                         DropdownMenuItem(onClick = {
+                                            formatSelected = "MKV"
+                                            expanded = false
+                                            selectedFormat = true
+                                        }) { Text("MKV") }
+                                        DropdownMenuItem(onClick = {
                                             formatSelected = "GIF"
                                             expanded = false
                                             selectedFormat = true
@@ -212,6 +217,7 @@ fun screen() {
                                     }) { Text("Convert To BMP") }
                                 }
                             }
+                            else -> {}
                         }
                     }
                 }
@@ -518,7 +524,7 @@ fun determineFilesType(files: List<File>): Filetype {
 }
 fun determineFileType(fileExt: String): Filetype {
     return when (fileExt.lowercase()) {
-        "mp4", "mov", "gif", "flv", "avi" -> {
+        "mp4", "mov", "gif", "flv", "avi", "mkv" -> {
             Filetype.VIDEO
         }
         "png", "jpeg", "jpg", "webp", "bmp" -> {
