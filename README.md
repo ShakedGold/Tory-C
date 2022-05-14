@@ -9,8 +9,6 @@ a Video/Image Convertor that is run by Kotlin with the <a href="https://github.c
   <a href="https://github.com/ShakedGold/Tory-C/releases/latest">
     <img src="https://img.shields.io/github/v/release/ShakedGold/Tory-C" width="100" alt="Releases"/>
   </a>
-  &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-  <img src="https://img.shields.io/github/languages/code-size/ShakedGold/Tory-C" width="140" alt="File Size">
 </p>
 <p align="center">
   <a href="https://twitter.com/ShakedGold_" target="blank">
