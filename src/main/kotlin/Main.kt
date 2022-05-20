@@ -4,6 +4,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,6 +14,7 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -28,14 +30,8 @@ import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
 import java.awt.FileDialog
-import java.awt.image.BufferedImage
 import java.io.File
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
-import javax.imageio.ImageIO
-import javax.imageio.ImageWriteParam
-import javax.imageio.ImageWriter
 import javax.swing.JFileChooser
 import javax.swing.UIManager
 import kotlin.concurrent.thread
@@ -43,7 +39,8 @@ import kotlin.concurrent.thread
 
 var percentage = 0f
 var counterFiles = 0
-var options = listOf(25L, 60, "1080")
+var videoOptions = listOf(25L, 60, "1080")
+var audioBitrate = "1500"
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -56,10 +53,32 @@ fun App() {
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun screen() {
+    val ffmpeg: FFmpeg
+    val ffprobe: FFprobe
+    when (OSValidator.checkOS()) {
+        "Windows" -> {
+            ffmpeg = FFmpeg("${System.getProperty("user.dir")}\\ffmpeg.exe")
+            ffprobe = FFprobe("${System.getProperty("user.dir")}\\ffprobe.exe")
+        }
+        "Mac" -> {
+            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpeg")
+            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffprobe")
+        }
+        "Linux" -> {
+            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpeg")
+            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffprobe")
+        }
+        else -> {
+            ffmpeg =
+                FFmpeg("${System.getProperty("user.dir")}\\ffmpeg.exe")
+            ffprobe =
+                FFprobe("${System.getProperty("user.dir")}\\ffprobe.exe")
+        }
+    }
+
     var mode by remember { mutableStateOf(Mode.IMPORT) }
     var files by remember { mutableStateOf(listOf<File>()) }
-    var ffmpeg by remember { mutableStateOf(FFmpeg()) }
-    var ffprobe by remember { mutableStateOf(FFprobe()) }
+
     var progress by remember { mutableStateOf(0f) }
     var selectedFormat by remember { mutableStateOf(false) }
     var formatSelected by remember { mutableStateOf("") }
@@ -84,26 +103,6 @@ fun screen() {
                 }
                 Spacer(modifier = Modifier.padding(20.dp))
                 Button(onClick = {
-                    when (OSValidator.checkOS()) {
-                        "Windows" -> {
-                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}\\ffmpeg.exe")
-                            ffprobe = FFprobe("${System.getProperty("user.dir")}\\ffprobe.exe")
-                        }
-                        "Mac" -> {
-                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpeg")
-                            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffprobe")
-                        }
-                        "Linux" -> {
-                            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpeg")
-                            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffprobe")
-                        }
-                        else -> {
-                            ffmpeg =
-                                FFmpeg("${System.getProperty("user.dir")}\\ffmpeg.exe")
-                            ffprobe =
-                                FFprobe("${System.getProperty("user.dir")}\\ffprobe.exe")
-                        }
-                    }
                     files = openFileDialog(
                         ComposeWindow(),
                         "Choose Files",
@@ -217,6 +216,53 @@ fun screen() {
                                     }) { Text("Convert To BMP") }
                                 }
                             }
+                            Filetype.AUDIO -> {
+                                Button(
+                                    onClick = { expanded = true },
+                                    modifier = Modifier.fillMaxWidth().padding(5.dp)
+                                ) { Text("Choose Format") }
+                                Column {
+                                    DropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        DropdownMenuItem(onClick = {
+                                            formatSelected = "MP3"
+                                            expanded = false
+                                            selectedFormat = true
+                                        }) { Text("MP3") }
+                                        DropdownMenuItem(onClick = {
+                                            formatSelected = "WAV"
+                                            expanded = false
+                                            selectedFormat = true
+                                        }) { Text("WAV") }
+                                        DropdownMenuItem(onClick = {
+                                            formatSelected = "OGG"
+                                            expanded = false
+                                            selectedFormat = true
+                                        }) { Text("OGG") }
+                                        DropdownMenuItem(onClick = {
+                                            formatSelected = "aac"
+                                            expanded = false
+                                            selectedFormat = true
+                                        }) { Text("AAC") }
+                                    }
+                                }
+                                if (selectedFormat) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text("Format Selected: ")
+                                        Text(formatSelected, fontWeight = FontWeight.Bold)
+                                    }
+                                    Spacer(modifier = Modifier.padding(top = 10.dp))
+                                }
+                                Spacer(modifier = Modifier.padding(top = 20.dp))
+                                AudioSettings()
+                            }
                             else -> {}
                         }
                     }
@@ -238,7 +284,7 @@ fun screen() {
                         formatSelected = ""
                         currentlyDoing = "Finished Converting $counterFiles Files"
                         alpha = 0f
-                        options = listOf(25L, 60, "1080")
+                        videoOptions = listOf(25L, 60, "1080")
                     }) { Text("Back") }
                     var enabled by remember { mutableStateOf(false) }
                     if (formatSelected.isNotEmpty()) enabled = true
@@ -322,6 +368,9 @@ fun screen() {
                                     Filetype.IMAGE -> {
                                         convertImage(files, formatSelected.lowercase(), folder)
                                     }
+                                    Filetype.AUDIO -> {
+                                        convertAudio(formatSelected.lowercase(), files, ffmpeg, ffprobe, folder)
+                                    }
                                     else -> {}
                                 }
                                 backEnabled = false
@@ -336,15 +385,41 @@ fun screen() {
 
 @ExperimentalAnimationApi
 @Composable
+fun AudioSettings() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        var bitrate by remember { mutableStateOf("") }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Select Bitrate")
+            Spacer(modifier = Modifier.padding(10.dp))
+            OutlinedTextField(
+                placeholder = { Text("For Example: 1500") },
+                value = bitrate,
+                onValueChange = { value ->
+                    if(value.length > 0) {
+                        bitrate = value.filter { it.isDigit() }
+                        audioBitrate = bitrate
+                    }
+                }
+            )
+        }
+    }
+}
+
+@ExperimentalAnimationApi
+@Composable
 fun VideoSettings() {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var bitrateText by remember { mutableStateOf(options[0].toString()) }
-        var fpsText by remember { mutableStateOf(options[1]) }
-        var quality by remember { mutableStateOf(options[2]) }
+        var bitrateText by remember { mutableStateOf(videoOptions[0].toString()) }
+        var fpsText by remember { mutableStateOf(videoOptions[1]) }
+        var quality by remember { mutableStateOf(videoOptions[2]) }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Select Bitrate (Mbps)")
             Spacer(modifier = Modifier.padding(10.dp))
@@ -353,7 +428,7 @@ fun VideoSettings() {
                 value = bitrateText,
                 onValueChange = { value ->
                     bitrateText = value.filter { it.isDigit() }
-                    options = listOf(bitrateText, fpsText, quality)
+                    videoOptions = listOf(bitrateText, fpsText, quality)
                 }
             )
         }
@@ -366,7 +441,7 @@ fun VideoSettings() {
                 value = fpsText.toString(),
                 onValueChange = { value ->
                     fpsText = value.filter { it.isDigit() }
-                    options = listOf(bitrateText, fpsText, quality)
+                    videoOptions = listOf(bitrateText, fpsText, quality)
                 }
             )
         }
@@ -378,22 +453,22 @@ fun VideoSettings() {
                 DropdownMenuItem(onClick = {
                     qualityExpanded = false
                     quality = "1080"
-                    options = listOf(bitrateText, fpsText, quality)
+                    videoOptions = listOf(bitrateText, fpsText, quality)
                 }) { Text("1080p") }
                 DropdownMenuItem(onClick = {
                     qualityExpanded = false
                     quality = "720"
-                    options = listOf(bitrateText, fpsText, quality)
+                    videoOptions = listOf(bitrateText, fpsText, quality)
                 }) { Text("720p") }
                 DropdownMenuItem(onClick = {
                     qualityExpanded = false
                     quality = "480"
-                    options = listOf(bitrateText, fpsText, quality)
+                    videoOptions = listOf(bitrateText, fpsText, quality)
                 }) { Text("480p") }
                 DropdownMenuItem(onClick = {
                     qualityExpanded = false
                     quality = "360"
-                    options = listOf(bitrateText, fpsText, quality)
+                    videoOptions = listOf(bitrateText, fpsText, quality)
                 })
                 { Text("360p") }
             }
@@ -481,22 +556,67 @@ fun convertVideo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe,
                 }
             }
             val builder = FFmpegBuilder().setInput(`in`)
-            if (s == "gif") {
-                builder.addOutput(resultPath)
-                    .setVideoBitRate(100_000 * options[0].toString().toLong())
-                    .setVideoFrameRate(options[1].toString().toDouble())
-                    .addExtraArgs("-vf", "scale=-2:${options[2]}")
-                    .setAudioCodec("copy")
-                    .done()
+            if(videoOptions[0] == 25L && videoOptions[1] == 60 && videoOptions[2] == "1080") {
+                if (s == "gif") {
+                    builder.addOutput(resultPath)
+                        .setVideoCodec("copy")
+                        .setAudioCodec("copy")
+                        .done()
+                } else {
+                    builder.addOutput(resultPath)
+                        .setVideoCodec("copy")
+                        .setAudioCodec("copy")
+                        .done()
+                }
             } else {
-                builder.addOutput(resultPath)
-                    .setVideoBitRate(100_000 * options[0].toString().toLong())
-                    .setVideoFrameRate(options[1].toString().toDouble())
-                    .addExtraArgs("-vf", "scale=-2:${options[2]}")
-                    .setVideoCodec("h264")
-                    .setAudioCodec("copy")
-                    .done()
+                if (s == "gif") {
+                    builder.addOutput(resultPath)
+                        .setVideoBitRate(100_000 * videoOptions[0].toString().toLong())
+                        .setVideoFrameRate(videoOptions[1].toString().toDouble())
+                        .addExtraArgs("-vf", "scale=-2:${videoOptions[2]}")
+                        .setAudioCodec("copy")
+                        .done()
+                } else {
+                    builder.addOutput(resultPath)
+                        .setVideoBitRate(100_000 * videoOptions[0].toString().toLong())
+                        .setVideoFrameRate(videoOptions[1].toString().toDouble())
+                        .addExtraArgs("-vf", "scale=-2:${videoOptions[2]}")
+                        .setVideoCodec("h264")
+                        .setAudioCodec("copy")
+                        .done()
+                }
             }
+            val job = executor.createJob(builder, object : ProgressListener {
+                val duration_ns = `in`.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
+                override fun progress(progress: Progress) {
+                    percentage = (progress.out_time_ns / duration_ns).toFloat()
+                }
+            })
+            job.run()
+            counterFiles++
+        }
+    }
+}
+fun convertAudio(format: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe, directoryPath: String) {
+    thread(start = true, isDaemon = false) {
+        files.forEach { file ->
+            val executor = FFmpegExecutor(ffmpeg, ffprobe)
+            val `in` = ffprobe.probe(file.path)
+            var resultPath = ""
+            if (directoryPath[directoryPath.length - 1] == '\\')
+                resultPath = "${directoryPath}${file.nameWithoutExtension}.$format"
+            else {
+                when(OSValidator.checkOS()) {
+                    "Windows" -> {
+                        resultPath = "${directoryPath}\\${file.nameWithoutExtension}.$format"
+                    }
+                    "Mac", "Linux" -> {
+                        resultPath = "${directoryPath}/${file.nameWithoutExtension}.$format"
+                    }
+                }
+            }
+            val builder = FFmpegBuilder().setInput(`in`).addOutput(resultPath)
+                .setAudioBitRate(audioBitrate.toLong()).done()
             val job = executor.createJob(builder, object : ProgressListener {
                 val duration_ns = `in`.getFormat().duration * TimeUnit.SECONDS.toNanos(1)
                 override fun progress(progress: Progress) {
@@ -529,6 +649,9 @@ fun determineFileType(fileExt: String): Filetype {
         }
         "png", "jpeg", "jpg", "webp", "bmp" -> {
             Filetype.IMAGE
+        }
+        "mp3", "wav", "ogg", "flac", "aac" -> {
+            Filetype.AUDIO
         }
         else -> {
             Filetype.ERROR

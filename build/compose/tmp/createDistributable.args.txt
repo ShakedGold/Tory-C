@@ -7,7 +7,7 @@
 --java-options
 "'-Dcompose.application.resources.dir=$APPDIR\\resources'"
 --main-jar
-"C:\\Users\\shake\\IdeaProjects\\All-File-Convertor\\build\\compose\\tmp\\createDistributable\\libs\\untitled-1.0-c941f17e4059f4589941c9382def9785.jar"
+"C:\\Users\\shake\\IdeaProjects\\All-File-Convertor\\build\\compose\\tmp\\createDistributable\\libs\\untitled-1.0-be2811de5587769da070bd1bec74f3d.jar"
 --main-class
 "MainKt"
 --icon
