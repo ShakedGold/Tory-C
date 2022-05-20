@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c188ea92-17c4-40e9-8bfc-4c4931840da9" name="Changes" comment="Add Audio">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="c188ea92-17c4-40e9-8bfc-4c4931840da9" name="Changes" comment="Add Audio" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -39,6 +36,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/build.gradle.kts" root0="FORCE_HIGHLIGHTING" />
@@ -120,7 +118,7 @@
       <workItem from="1651073506050" duration="1250000" />
       <workItem from="1651075089124" duration="2647000" />
       <workItem from="1652558167591" duration="4065000" />
-      <workItem from="1653041218529" duration="1018000" />
+      <workItem from="1653041218529" duration="1400000" />
     </task>
     <task id="LOCAL-00001" summary="Finished Everything!">
       <created>1649868155184</created>
@@ -157,7 +155,14 @@
       <option name="project" value="LOCAL" />
       <updated>1653042167885</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Add Audio">
+      <created>1653042260966</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1653042260967</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
