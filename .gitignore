@@ -1,0 +1,6 @@
+.DS_Store
+build/
+ff*
+build/compose/binaries/main/app/ToryC/ffmpeg.exe
+build/compose/binaries/main/app/ToryC/ffprobe.exe
+build/compose/binaries/main/app/ToryC/ToryC.exe
