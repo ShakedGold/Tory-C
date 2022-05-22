@@ -17,7 +17,8 @@ a Video/Image Convertor that is run by Kotlin with the <a href="https://github.c
 </p>
 <p align="center">
   <a href="https://ko-fi.com/shakedgold" target="blank">
-  <img src="https://github.com/GorvGoyl/Notion-Boost-browser-extension/raw/master/src/images/readme/bmc.png" width="200" alt="Buy me a Coffee"/>
+  <img src="https://pedalingastronomer.files.wordpress.com/2021/07/bmc-button.png" width="200" alt="Buy me a Coffee"/>
+    
   </a>
 </p>
 
