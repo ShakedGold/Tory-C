@@ -25,7 +25,7 @@ a Video/Image Convertor that is run by Kotlin with the <a href="https://github.c
 # Features
 * Auto detecting filetypes, for example video, audio
 * Options for filetypes, bitrate resolution
-* Fast convertion whilst not changing settings
+* Fast Conversion whilst not changing settings
 * Three Filetypes: Video, Audio, Image
 
 # Usage
