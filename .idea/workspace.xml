@@ -4,7 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c188ea92-17c4-40e9-8bfc-4c4931840da9" name="Changes" comment="Add Audio" />
+    <list default="true" id="c188ea92-17c4-40e9-8bfc-4c4931840da9" name="Changes" comment="Add Audio">
+      <change beforePath="$PROJECT_DIR$/.gradle/7.1.1/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/7.1.1/executionHistory/executionHistory.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/7.1.1/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/7.1.1/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/7.1.1/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/7.1.1/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/7.1.1/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/7.1.1/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/checksums/checksums.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/checksums/sha1-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -31,6 +42,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Kotlin Class" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -40,6 +52,7 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/build.gradle.kts" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/main/kotlin/Enums/Filetype.kt" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/main/kotlin/Main.kt" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -54,13 +67,16 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/shake/IdeaProjects/All-File-Convertor&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/shake/OneDrive - Netanya Academic College/Documents/test Java&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;terminal&quot;
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.projectsettings.compiler.javacompiler&quot;
   }
 }</component>
   <component name="RecentsManager">
@@ -73,6 +89,20 @@
     </key>
   </component>
   <component name="RunManager" selected="Kotlin.MainKt (1)">
+    <configuration name="ThumbnailFileChooser" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="ThumbnailFileChooser" />
+      <module name="untitled.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="check" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="check" />
+      <module name="untitled.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="MainKt (1)" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="MainKt" />
       <module name="untitled.main" />
@@ -90,6 +120,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Kotlin.MainKt (1)" />
+        <item itemvalue="Application.check" />
+        <item itemvalue="Application.ThumbnailFileChooser" />
         <item itemvalue="Kotlin.MainKt" />
       </list>
     </recent_temporary>
@@ -118,7 +150,15 @@
       <workItem from="1651073506050" duration="1250000" />
       <workItem from="1651075089124" duration="2647000" />
       <workItem from="1652558167591" duration="4065000" />
-      <workItem from="1653041218529" duration="1400000" />
+      <workItem from="1653041218529" duration="3178000" />
+      <workItem from="1653227108229" duration="114000" />
+      <workItem from="1653472314285" duration="193000" />
+      <workItem from="1654269739783" duration="3209000" />
+      <workItem from="1655586333722" duration="573000" />
+      <workItem from="1655586945016" duration="4778000" />
+      <workItem from="1655591810338" duration="1579000" />
+      <workItem from="1655593595667" duration="5903000" />
+      <workItem from="1655624846903" duration="4748000" />
     </task>
     <task id="LOCAL-00001" summary="Finished Everything!">
       <created>1649868155184</created>

@@ -2,9 +2,10 @@ import Enums.Filetype
 import Enums.Mode
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,7 +15,6 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -31,10 +31,14 @@ import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
 import java.awt.FileDialog
 import java.io.File
+import java.io.FilenameFilter
 import java.util.concurrent.TimeUnit
 import javax.swing.JFileChooser
 import javax.swing.UIManager
 import kotlin.concurrent.thread
+import androidx.compose.material.TextFieldColors
+import org.jetbrains.skiko.currentSystemTheme
+import java.io.PrintWriter
 
 
 var percentage = 0f
@@ -42,14 +46,50 @@ var counterFiles = 0
 var videoOptions = listOf(25L, 60, "1080")
 var audioBitrate = "1500"
 
-@OptIn(ExperimentalAnimationApi::class)
+private val DarkColors = darkColors(
+    primary = Color(0xFFBB86FC),
+    secondary = Color.White,
+    secondaryVariant = Color.Gray,
+    // ...
+)
+private val LightColors = lightColors(
+    primary = Color(0xFF6200EE),
+    secondary = Color.Black,
+    secondaryVariant = Color.Black,
+    // ...
+)
+
 @Composable
 fun App() {
+    var dark by remember { mutableStateOf(false) }
+    dark = isSystemInDarkTheme()
+
     MaterialTheme {
-        screen()
+        if (dark)
+            Box(Modifier.fillMaxSize().background(Color(0xFF121212)))
+        else
+            Box(Modifier.fillMaxSize().background(Color.White))
+        Row {
+            Spacer(modifier = Modifier.padding(end = 5.dp))
+            Button(onClick = {dark = !dark}) {
+                if (dark) Text("\uD83C\uDF19")
+                else Text("☀️")
+            }
+        }
+        CustomTheme(dark) { screen() }
     }
 }
 
+@Composable
+fun CustomTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    MaterialTheme(
+        colors = if (darkTheme) DarkColors else LightColors,
+        content = content
+    )
+}
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun screen() {
@@ -90,32 +130,26 @@ fun screen() {
     ).value
     when (mode) {
         Mode.IMPORT -> {
-            counterFiles = 0
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Row {
-                    Text("Click On ", fontSize = 20.sp)
-                    Text("Import Files", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text(" to Start Converting!", fontSize = 20.sp)
+                    Text("Click On ", fontSize = 20.sp, color = MaterialTheme.colors.secondaryVariant)
+                    Text("Import Files", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colors.primary)
+                    Text(" to Start Converting!", fontSize = 20.sp, color = MaterialTheme.colors.secondaryVariant)
                 }
                 Spacer(modifier = Modifier.padding(20.dp))
                 Button(onClick = {
-                    files = openFileDialog(
-                        ComposeWindow(),
-                        "Choose Files",
-                        listOf("mov", "mp4", "flv", "avi", "png", "jpeg", "gif", "jpg", ".mkv"),
-                        true
-                    )
+                    files = openFileDialog(ComposeWindow())
                     if (files.isNotEmpty())
                         mode = Mode.SETTINGS
-                }) { Text("Import Files") }
+                }, modifier = Modifier.width(200.dp).height(50.dp)) { Text("Import Files", fontSize = 20.sp) }
                 Spacer(modifier = Modifier.padding(10.dp))
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                    text = "Please don't import different types of formats for example: mp4 and a png, in the same conversion",
+                    text = "Please don't import different types of\n formats for example: mp4 and a png, in the same conversion",
                     color = Color.Gray,
                     fontSize = 15.sp,
                     textAlign = TextAlign.Center
@@ -128,8 +162,13 @@ fun screen() {
             }
         }
         Mode.SETTINGS -> {
+            alpha = 0f
             var expanded by remember { mutableStateOf(false) }
-            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Column(
+                Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 LazyColumn(Modifier.weight(1f)) {
                     item {
                         when (determineFilesType(files)) {
@@ -182,8 +221,8 @@ fun screen() {
                                         horizontalArrangement = Arrangement.Center,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text("Format Selected: ")
-                                        Text(formatSelected, fontWeight = FontWeight.Bold)
+                                        Text("Format Selected: ", color = MaterialTheme.colors.secondaryVariant)
+                                        Text(formatSelected, fontWeight = FontWeight.Bold, color = MaterialTheme.colors.secondaryVariant)
                                     }
                                     Spacer(modifier = Modifier.padding(top = 10.dp))
                                 }
@@ -194,8 +233,8 @@ fun screen() {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     if (selectedFormat) {
                                         Row {
-                                            Text("Format Selected: ")
-                                            Text("${formatSelected.uppercase()}", fontWeight = FontWeight.Bold)
+                                            Text("Format Selected: ", color = MaterialTheme.colors.secondaryVariant)
+                                            Text("${formatSelected.uppercase()}", fontWeight = FontWeight.Bold, color = MaterialTheme.colors.secondaryVariant)
                                         }
                                     }
                                     Button(onClick = {
@@ -255,15 +294,20 @@ fun screen() {
                                         horizontalArrangement = Arrangement.Center,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text("Format Selected: ")
-                                        Text(formatSelected, fontWeight = FontWeight.Bold)
+                                        Text("Format Selected: ", color = MaterialTheme.colors.secondaryVariant)
+                                        Text(formatSelected, fontWeight = FontWeight.Bold, color = MaterialTheme.colors.secondaryVariant)
                                     }
                                     Spacer(modifier = Modifier.padding(top = 10.dp))
                                 }
                                 Spacer(modifier = Modifier.padding(top = 20.dp))
                                 AudioSettings()
                             }
-                            else -> {}
+                            else -> {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
+                                    Spacer(modifier = Modifier.padding(top = 10.dp))
+                                    Text("File Type Not Allowed", color = Color.Red, fontWeight = FontWeight.Bold)
+                                }
+                            }
                         }
                     }
                 }
@@ -297,20 +341,25 @@ fun screen() {
         Mode.FOLDER_SELECT -> {
             var folder = ""
             var backEnabled by remember { mutableStateOf(true) }
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(onClick = {
                         try {
                             folder = folderDialog().path
-                        } catch (_: Exception) { }
+                        } catch (_: Exception) {
+                        }
                     }) { Text("Choose Save Folder") }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Format Selected: ")
-                        Text(formatSelected.uppercase(), fontWeight = FontWeight.Bold)
+                        Text("Format Selected: ", color = MaterialTheme.colors.secondaryVariant)
+                        Text(formatSelected.uppercase(), fontWeight = FontWeight.Bold, color = MaterialTheme.colors.secondaryVariant)
                     }
                     Spacer(modifier = Modifier.padding(top = 20.dp))
                     if (alpha == 100f) {
@@ -319,7 +368,7 @@ fun screen() {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         ) {
-                            Text(currentlyDoing, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text(currentlyDoing, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colors.secondaryVariant)
                             LinearProgressIndicator(
                                 progress = animatedProgress,
                                 modifier = Modifier.fillMaxWidth().size(10.dp).alpha(alpha)
@@ -349,7 +398,7 @@ fun screen() {
                             Button(onClick = {
                                 thread(start = true, isDaemon = false) {
                                     progress = 0f
-                                    while(progress <= 1) {
+                                    while (progress <= 1) {
                                         progress = percentage
                                         currentlyDoing = "Finished Converting $counterFiles Files"
                                         if (files.size == counterFiles) {
@@ -361,7 +410,7 @@ fun screen() {
                                     }
                                 }
                                 alpha = 100f
-                                when(determineFilesType(files)) {
+                                when (determineFilesType(files)) {
                                     Filetype.VIDEO -> {
                                         convertVideo(formatSelected.lowercase(), files, ffmpeg, ffprobe, folder)
                                     }
@@ -393,17 +442,19 @@ fun AudioSettings() {
     ) {
         var bitrate by remember { mutableStateOf("") }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Select Bitrate")
+            Text("Select Bitrate", color = MaterialTheme.colors.secondaryVariant)
             Spacer(modifier = Modifier.padding(10.dp))
             OutlinedTextField(
                 placeholder = { Text("For Example: 1500") },
                 value = bitrate,
                 onValueChange = { value ->
-                    if(value.length > 0) {
-                        bitrate = value.filter { it.isDigit() }
-                        audioBitrate = bitrate
-                    }
-                }
+                    bitrate = value.filter { it.isDigit() }
+                    audioBitrate = bitrate
+                },
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = MaterialTheme.colors.background,
+                    textColor = MaterialTheme.colors.secondaryVariant
+                )
             )
         }
     }
@@ -421,28 +472,36 @@ fun VideoSettings() {
         var fpsText by remember { mutableStateOf(videoOptions[1]) }
         var quality by remember { mutableStateOf(videoOptions[2]) }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Select Bitrate (Mbps)")
+            Text("Select Bitrate (Mbps)", color = MaterialTheme.colors.secondaryVariant)
             Spacer(modifier = Modifier.padding(10.dp))
             OutlinedTextField(
-                placeholder = { Text("For Example: 20") },
+                placeholder = { Text("For Example: 20", color = MaterialTheme.colors.secondaryVariant) },
                 value = bitrateText,
                 onValueChange = { value ->
                     bitrateText = value.filter { it.isDigit() }
                     videoOptions = listOf(bitrateText, fpsText, quality)
-                }
+                },
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = MaterialTheme.colors.background,
+                    textColor = MaterialTheme.colors.secondaryVariant
+                )
             )
         }
         Spacer(modifier = Modifier.padding(3.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Select FPS")
+            Text("Select FPS", color = MaterialTheme.colors.secondaryVariant)
             Spacer(modifier = Modifier.padding(10.dp))
             OutlinedTextField(
-                placeholder = { Text("For Example: 60") },
+                placeholder = { Text("For Example: 60", color = MaterialTheme.colors.secondaryVariant) },
                 value = fpsText.toString(),
                 onValueChange = { value ->
                     fpsText = value.filter { it.isDigit() }
                     videoOptions = listOf(bitrateText, fpsText, quality)
-                }
+                },
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = MaterialTheme.colors.background,
+                    textColor = MaterialTheme.colors.secondaryVariant
+                )
             )
         }
         Spacer(modifier = Modifier.padding(3.dp))
@@ -473,7 +532,7 @@ fun VideoSettings() {
                 { Text("360p") }
             }
             Spacer(modifier = Modifier.padding(3.dp))
-            Text("Selected Resolution: ${quality}p")
+            Text("Selected Resolution: ${quality}p", color = MaterialTheme.colors.secondaryVariant)
         }
     }
 }
@@ -494,22 +553,21 @@ fun folderDialog(): File {
     f.showSaveDialog(null)
     return f.selectedFile
 }
-fun openFileDialog(window: ComposeWindow, title: String, allowedExtensions: List<String>, allowMultiSelection: Boolean = true): List<File> {
-    return FileDialog(window, title, FileDialog.LOAD).apply {
-        isMultipleMode = allowMultiSelection
 
-        // windows
-        file = allowedExtensions.joinToString(";") { "*$it" } // e.g. '*.jpg'
-
-        // linux
-        setFilenameFilter { _, name ->
-            allowedExtensions.any {
-                name.endsWith(it)
-            }
+fun String.endsWithMulti(vararg strings: String): Boolean {
+    strings.forEach {
+        if (endsWith(it)) {
+            return true
         }
+    }
+    return false
+}
 
-        isVisible = true
-    }.files.toList()
+fun openFileDialog(window: ComposeWindow): List<File> {
+    val fd = FileDialog(window, "Select Files", FileDialog.LOAD)
+    fd.isMultipleMode = true
+    fd.isVisible = true
+    return fd.files.toList()
 }
 
 fun convertImage(files: List<File>, format: String, directory: String) {
@@ -521,7 +579,7 @@ fun convertImage(files: List<File>, format: String, directory: String) {
             if (directory[directory.length - 1] == '\\')
                 resultPath = "${directory}${file.nameWithoutExtension}.$format"
             else {
-                when(OSValidator.checkOS()) {
+                when (OSValidator.checkOS()) {
                     "Windows" -> {
                         resultPath = "${directory}\\${file.nameWithoutExtension}.$format"
                     }
@@ -537,6 +595,7 @@ fun convertImage(files: List<File>, format: String, directory: String) {
         }
     }
 }
+
 fun convertVideo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe, directoryPath: String) {
     thread(start = true, isDaemon = false) {
         files.forEach { file ->
@@ -546,7 +605,7 @@ fun convertVideo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe,
             if (directoryPath[directoryPath.length - 1] == '\\')
                 resultPath = "${directoryPath}${file.nameWithoutExtension}.$s"
             else {
-                when(OSValidator.checkOS()) {
+                when (OSValidator.checkOS()) {
                     "Windows" -> {
                         resultPath = "${directoryPath}\\${file.nameWithoutExtension}.$s"
                     }
@@ -556,7 +615,7 @@ fun convertVideo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe,
                 }
             }
             val builder = FFmpegBuilder().setInput(`in`)
-            if(videoOptions[0] == 25L && videoOptions[1] == 60 && videoOptions[2] == "1080") {
+            if (videoOptions[0] == 25L && videoOptions[1] == 60 && videoOptions[2] == "1080") {
                 if (s == "gif") {
                     builder.addOutput(resultPath)
                         .setVideoCodec("copy")
@@ -597,6 +656,7 @@ fun convertVideo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe,
         }
     }
 }
+
 fun convertAudio(format: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe, directoryPath: String) {
     thread(start = true, isDaemon = false) {
         files.forEach { file ->
@@ -606,7 +666,7 @@ fun convertAudio(format: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFp
             if (directoryPath[directoryPath.length - 1] == '\\')
                 resultPath = "${directoryPath}${file.nameWithoutExtension}.$format"
             else {
-                when(OSValidator.checkOS()) {
+                when (OSValidator.checkOS()) {
                     "Windows" -> {
                         resultPath = "${directoryPath}\\${file.nameWithoutExtension}.$format"
                     }
@@ -642,6 +702,7 @@ fun determineFilesType(files: List<File>): Filetype {
     }
     return determineFileType(current)
 }
+
 fun determineFileType(fileExt: String): Filetype {
     return when (fileExt.lowercase()) {
         "mp4", "mov", "gif", "flv", "avi", "mkv" -> {
@@ -660,7 +721,11 @@ fun determineFileType(fileExt: String): Filetype {
 }
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication, title = "File Convertor", state = WindowState(size = DpSize(500.dp, 480.dp), position = WindowPosition(Alignment.Center))) {
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "File Convertor",
+        state = WindowState(size = DpSize(500.dp, 480.dp), position = WindowPosition(Alignment.Center))
+    ) {
         App()
     }
 }
