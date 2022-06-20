@@ -35,7 +35,7 @@ a Video/Image Convertor that is run by Kotlin with the <a href="https://github.c
 ```py
 Open 'Tory Installer.exe'
 Install the program and open it up
-Click 'Import Files' and chose the files
+Click 'Import Files' and choose the files
 Click the type of file you want to convert to and other settings
 Choose the location
 Click on Start Converting
