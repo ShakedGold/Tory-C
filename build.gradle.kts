@@ -33,6 +33,9 @@ compose.desktop {
             packageName = "ToryC"
             description = "Video / Image Conversion App"
             copyright = "© 2022 Shaked Gold. All rights reserved."
+            jvmArgs(
+                "-Dapple.awt.application.appearance=system"
+            )
             modules("java.sql")
 
             macOS {

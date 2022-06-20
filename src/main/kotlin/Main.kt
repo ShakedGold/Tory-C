@@ -73,7 +73,7 @@ fun App() {
             Spacer(modifier = Modifier.padding(end = 5.dp))
             Button(onClick = {dark = !dark}) {
                 if (dark) Text("\uD83C\uDF19")
-                else Text("☀️")
+                else Text("\uD83C\uDF24️")
             }
         }
         CustomTheme(dark) { screen() }
@@ -93,16 +93,22 @@ fun CustomTheme(
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun screen() {
-    val ffmpeg: FFmpeg
-    val ffprobe: FFprobe
+    var ffmpeg: FFmpeg
+    var ffprobe: FFprobe
     when (OSValidator.checkOS()) {
         "Windows" -> {
             ffmpeg = FFmpeg("${System.getProperty("user.dir")}\\ffmpeg.exe")
             ffprobe = FFprobe("${System.getProperty("user.dir")}\\ffprobe.exe")
         }
         "Mac" -> {
-            ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpeg")
-            ffprobe = FFprobe("${System.getProperty("user.dir")}/ffprobe")
+            try {
+                ffmpeg = FFmpeg("${System.getProperty("compose.application.resources.dir")}/ffmpeg")
+                ffprobe = FFprobe("${System.getProperty("compose.application.resources.dir")}/ffprobe")
+            }
+            catch(e: Exception) {
+                ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpeg")
+                ffprobe = FFprobe("${System.getProperty("user.dir")}/ffprobe")
+            }
         }
         "Linux" -> {
             ffmpeg = FFmpeg("${System.getProperty("user.dir")}/ffmpeg")
@@ -349,7 +355,7 @@ fun screen() {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(onClick = {
                         try {
-                            folder = folderDialog().path
+                            folder = folderDialog().absolutePath
                         } catch (_: Exception) {
                         }
                     }) { Text("Choose Save Folder") }
@@ -538,20 +544,11 @@ fun VideoSettings() {
 }
 
 fun folderDialog(): File {
-    when (OSValidator.checkOS()) {
-        "Windows" -> {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
-        }
-        "Mac" -> {}
-        "Linux" -> {}
-        else -> {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel")
-        }
-    }
+    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
     val f = JFileChooser()
     f.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
     f.showSaveDialog(null)
-    return f.selectedFile
+    return f.currentDirectory
 }
 
 fun String.endsWithMulti(vararg strings: String): Boolean {
