@@ -355,7 +355,7 @@ fun screen() {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(onClick = {
                         try {
-                            folder = folderDialog().absolutePath
+                            folder = folderDialog()
                         } catch (_: Exception) {
                         }
                     }) { Text("Choose Save Folder") }
@@ -543,12 +543,12 @@ fun VideoSettings() {
     }
 }
 
-fun folderDialog(): File {
+fun folderDialog(): String {
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
     val f = JFileChooser()
     f.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
     f.showSaveDialog(null)
-    return f.currentDirectory
+    return f.selectedFile.absolutePath.substring(0, if (f.selectedFile.path.lastIndexOf('/') != -1) f.selectedFile.path.lastIndexOf('/') else f.selectedFile.absolutePath.length)
 }
 
 fun String.endsWithMulti(vararg strings: String): Boolean {
