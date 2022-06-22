@@ -544,11 +544,18 @@ fun VideoSettings() {
 }
 
 fun folderDialog(): String {
+    System.setProperty("apple.awt.fileDialogForDirectories", "true")
     UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+    val f = FileDialog(ComposeWindow(), "select folder", FileDialog.SAVE)
+    f.isMultipleMode = true
+    f.isVisible = true
+    return f.directory
+    /*
     val f = JFileChooser()
     f.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
     f.showSaveDialog(null)
     return f.selectedFile.absolutePath.substring(0, if (f.selectedFile.path.lastIndexOf('/') != -1) f.selectedFile.path.lastIndexOf('/') else f.selectedFile.absolutePath.length)
+     */
 }
 
 fun String.endsWithMulti(vararg strings: String): Boolean {
