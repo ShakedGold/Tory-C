@@ -23,6 +23,15 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import com.lowagie.text.Font
+import com.lowagie.text.FontFactory
+import com.lowagie.text.pdf.BaseFont
+import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions
+import fr.opensagres.xdocreport.converter.ConverterRegistry
+import fr.opensagres.xdocreport.converter.ConverterTypeTo
+import fr.opensagres.xdocreport.converter.Options
+import fr.opensagres.xdocreport.core.document.DocumentKind
+import fr.opensagres.xdocreport.itext.extension.font.IFontProvider
 import net.bramp.ffmpeg.FFmpeg
 import net.bramp.ffmpeg.FFmpegExecutor
 import net.bramp.ffmpeg.FFprobe
@@ -31,14 +40,12 @@ import net.bramp.ffmpeg.progress.Progress
 import net.bramp.ffmpeg.progress.ProgressListener
 import java.awt.FileDialog
 import java.io.File
-import java.io.FilenameFilter
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.util.concurrent.TimeUnit
 import javax.swing.JFileChooser
 import javax.swing.UIManager
 import kotlin.concurrent.thread
-import androidx.compose.material.TextFieldColors
-import org.jetbrains.skiko.currentSystemTheme
-import java.io.PrintWriter
 
 
 var percentage = 0f
@@ -47,13 +54,13 @@ var videoOptions = listOf(25L, 60, "1080")
 var audioBitrate = "1500"
 
 private val DarkColors = darkColors(
-    primary = Color(0xFFBB86FC),
+    primary = Color(52, 134, 207),
     secondary = Color.White,
     secondaryVariant = Color.Gray,
     // ...
 )
 private val LightColors = lightColors(
-    primary = Color(0xFF6200EE),
+    primary = Color(52, 134, 207),
     secondary = Color.Black,
     secondaryVariant = Color.Black,
     // ...
@@ -71,12 +78,13 @@ fun App() {
             Box(Modifier.fillMaxSize().background(Color.White))
         Row {
             Spacer(modifier = Modifier.padding(end = 5.dp))
-            Button(onClick = {dark = !dark}) {
+            Button(onClick = {dark = !dark}, colors = ButtonDefaults.buttonColors(backgroundColor = Color(52, 134, 207))) {
                 if (dark) Text("\uD83C\uDF19")
                 else Text("\uD83C\uDF24️")
             }
         }
         CustomTheme(dark) { screen() }
+
     }
 }
 
@@ -123,7 +131,7 @@ fun screen() {
     }
 
     var mode by remember { mutableStateOf(Mode.IMPORT) }
-    var files by remember { mutableStateOf(listOf<File>()) }
+    var files by remember { mutableStateOf(mutableListOf<File>()) }
 
     var progress by remember { mutableStateOf(0f) }
     var selectedFormat by remember { mutableStateOf(false) }
@@ -308,6 +316,37 @@ fun screen() {
                                 Spacer(modifier = Modifier.padding(top = 20.dp))
                                 AudioSettings()
                             }
+                            Filetype.DOCUMENT -> {
+                                Button(
+                                    onClick = { expanded = true },
+                                    modifier = Modifier.fillMaxWidth().padding(5.dp)
+                                ) { Text("Choose Format") }
+                                Column {
+                                    DropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        DropdownMenuItem(onClick = {
+                                            formatSelected = "PDF"
+                                            expanded = false
+                                            selectedFormat = true
+                                        }) { Text("PDF") }
+                                    }
+                                }
+                                if (selectedFormat) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text("Format Selected: ", color = MaterialTheme.colors.secondaryVariant)
+                                        Text(formatSelected, fontWeight = FontWeight.Bold, color = MaterialTheme.colors.secondaryVariant)
+                                    }
+                                    Spacer(modifier = Modifier.padding(top = 10.dp))
+                                }
+                                Spacer(modifier = Modifier.padding(top = 20.dp))
+                            }
                             else -> {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
                                     Spacer(modifier = Modifier.padding(top = 10.dp))
@@ -425,6 +464,9 @@ fun screen() {
                                     }
                                     Filetype.AUDIO -> {
                                         convertAudio(formatSelected.lowercase(), files, ffmpeg, ffprobe, folder)
+                                    }
+                                    Filetype.DOCUMENT -> {
+                                        convertDocument(files, folder)
                                     }
                                     else -> {}
                                 }
@@ -567,11 +609,11 @@ fun String.endsWithMulti(vararg strings: String): Boolean {
     return false
 }
 
-fun openFileDialog(window: ComposeWindow): List<File> {
-    val fd = FileDialog(window, "Select Files", FileDialog.LOAD)
+fun openFileDialog(window: ComposeWindow): MutableList<File> {
+    var fd = FileDialog(window, "Select Files", FileDialog.LOAD)
     fd.isMultipleMode = true
     fd.isVisible = true
-    return fd.files.toList()
+    return fd.files.toMutableList()
 }
 
 fun convertImage(files: List<File>, format: String, directory: String) {
@@ -661,6 +703,48 @@ fun convertVideo(s: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe,
     }
 }
 
+fun convertDocument(files: List<File>, directory: String) {
+    thread(isDaemon = false, start = true) {
+        counterFiles = 0
+        var resultPath = ""
+        files.forEach { file ->
+            val from = DocumentKind.valueOf(file.extension.uppercase())
+            val to = ConverterTypeTo.PDF
+            val options = Options.getFrom(from).to(to)
+            val converter = ConverterRegistry.getRegistry().getConverter(options)
+            if (directory[directory.length - 1] == '\\')
+                resultPath = "${directory}${file.nameWithoutExtension}.pdf"
+            else {
+                when (OSValidator.checkOS()) {
+                    "Windows" -> {
+                        resultPath = "${directory}\\${file.nameWithoutExtension}.pdf"
+                    }
+                    "Mac", "Linux" -> {
+                        resultPath = "${directory}/${file.nameWithoutExtension}.pdf"
+                    }
+                }
+            }
+            try {
+                val `is`: FileInputStream = FileInputStream(File(file.absolutePath))
+                try {
+                    val os: FileOutputStream = FileOutputStream(File(resultPath))
+                    try {
+                        converter.convert(`is`, os, options)
+                        counterFiles++
+                    } finally {
+                        os.close()
+                    }
+                } finally {
+                    `is`.close()
+                }
+            } catch (e: java.lang.Exception) {
+                throw RuntimeException(e)
+            }
+            percentage = counterFiles.toFloat() / files.size.toFloat()
+        }
+    }
+}
+
 fun convertAudio(format: String, files: List<File>, ffmpeg: FFmpeg, ffprobe: FFprobe, directoryPath: String) {
     thread(start = true, isDaemon = false) {
         files.forEach { file ->
@@ -717,6 +801,9 @@ fun determineFileType(fileExt: String): Filetype {
         }
         "mp3", "wav", "ogg", "flac", "aac" -> {
             Filetype.AUDIO
+        }
+        "docx", "pptx", "doc", "ppt" -> {
+            Filetype.DOCUMENT
         }
         else -> {
             Filetype.ERROR

@@ -1,5 +1,5 @@
 package Enums
 
 enum class Filetype {
-    VIDEO, IMAGE, AUDIO, ERROR
+    VIDEO, IMAGE, AUDIO, DOCUMENT, ERROR
 }

@@ -13,12 +13,19 @@ version = "1.0"
 repositories {
     google()
     mavenCentral()
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    maven{url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev")}
+    maven{url = uri("https://repository.aspose.com/repo/")}
 }
 
 dependencies {
     implementation(compose.desktop.currentOs)
-    implementation("net.bramp.ffmpeg:ffmpeg:0.6.2")
+    implementation("net.bramp.ffmpeg:ffmpeg:0.7.0")
+    implementation("fr.opensagres.xdocreport:fr.opensagres.xdocreport.document:2.0.3")
+    implementation("fr.opensagres.xdocreport:fr.opensagres.xdocreport.converter.docx.xwpf:2.0.3")
+    implementation("fr.opensagres.xdocreport:fr.opensagres.xdocreport.document.docx:2.0.3")
+    implementation("fr.opensagres.xdocreport:fr.opensagres.xdocreport.core:2.0.3")
+    implementation("fr.opensagres.xdocreport:xdocreport:2.0.3")
+    implementation("fr.opensagres.xdocreport:fr.opensagres.xdocreport.converter:2.0.3")
 }
 
 tasks.withType<KotlinCompile> {
