@@ -25,19 +25,20 @@ a Video/Image Convertor that is run by Kotlin with the <a href="https://github.c
 # Features
 * Auto detecting filetypes, for example video, audio
 * Options for filetypes, bitrate resolution
-* Fast Conversion whilst not changing settings
-* Three Filetypes: Video, Audio, Image
+* Faster Conversion whilst not changing settings
+* Four Filetypes: Video, Audio, Image, Document.
 
 # Usage
 
 ---
 
 ```py
-Open 'Tory Installer.exe'
-Install the program and open it up
-Click 'Import Files' and choose the files
-Click the type of file you want to convert to and other settings
-Choose the location
-Click on Start Converting
+1. Open 'ToryC-Setup.exe' or 'ToryC.app'.
+2. Install the program (only windows), and open it up.
+3. Click 'Import Files' and choose the files
+4. Click the type of file you want to convert to and other settings
+5. Choose the save folder location.
+6. Click on Start Converting.
+7. Done!
 ```
 <img src="https://i.imgur.com/ifkBFB1.gif">
